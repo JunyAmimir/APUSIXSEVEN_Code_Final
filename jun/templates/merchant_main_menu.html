@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merchant Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root { 
+    --orange: #ff6b00;        
+    --text: #ffffff; 
+    --muted: #8a8d93;         
+    --line: rgba(255, 255, 255, 0.08); 
+    --page-bg: #1b173f;       
+    --app-bg: #090B10;        
+    --card-bg: #15171E;       
+    --header-bg: #15171E;     
+    --nav-bg: #15171E;        
+}
+* { box-sizing: border-box; }
+body {
+    background: var(--page-bg); 
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif; 
+    color: var(--text);
+}
+
+.stage { 
+    min-height: 100vh; 
+    display: grid; 
+    place-items: center; 
+    padding: 14px; 
+}
+
+.phone { 
+    width: 330px; 
+    height: 708px; 
+    background: var(--app-bg); 
+    border-radius: 18px; 
+    border: 1px solid rgba(255, 255, 255, 0.08); 
+    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.35); 
+    position: relative; 
+    overflow: hidden; 
+    display: flex; 
+    flex-direction: column; 
+    margin: 0;
+}
+.main-content {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+.app-header { 
+    padding: 20px 20px 12px; 
+    background: var(--header-bg); 
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    z-index: 10; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+}
+.greeting { font-size: 0.8rem; color: var(--muted); }
+h2 { margin: 0; font-size: 1.2rem; font-weight: 700; }
+
+#profileBtn { transition: all 0.3s ease; }
+#profileBtn:hover {
+    box-shadow: 0 0 15px rgba(255, 116, 38, 0.7);
+    border-color: var(--orange);
+    transform: translateY(-2px);
+}
+
+.content { 
+    flex: 1; 
+    overflow-y: auto; 
+    padding: 12px 20px 120px; 
+    background: transparent; 
+    border-top: 1px solid var(--line);
+}
+.content::-webkit-scrollbar { width: 5px; }
+.content::-webkit-scrollbar-thumb { background: rgba(255,116,38,0.4); border-radius: 10px; }
+
+.stat-card, .chart-container, .voucher-card { 
+    background: var(--card-bg); border: 1px solid var(--line); 
+    border-radius: 22px; box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+    transition: all 0.3s ease; 
+}
+
+.stat-card { padding: 20px; cursor: pointer; }
+
+.stat-card:hover, .chart-container:hover {
+    box-shadow: 0 0 25px rgba(255, 116, 38, 0.25), inset 0 0 8px rgba(255, 116, 38, 0.1);
+    border-color: rgba(255, 116, 38, 0.4);
+    transform: translateY(-3px);
+}
+
+.stat-card:active {
+    transform: translateY(-1px);
+}
+
+.chart-container { 
+    padding: 20px 16px; 
+    background: var(--card-bg); 
+    border-radius: 22px;
+    margin-bottom: 24px;
+}
+
+#redemptionChart {
+    width: 100% !important;
+    height: 220px !important;
+}
+
+.progress-bar {
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 9999px;
+    overflow: hidden;
+    margin: 8px 0 4px 0;
+}
+.progress {
+    height: 100%;
+    background: linear-gradient(90deg, var(--orange), #ffaa77);
+    border-radius: 9999px;
+    transition: width 0.6s ease;
+}
+.progress.inactive { background: #6b7280; }
+
+.voucher-list { display: flex; flex-direction: column; gap: 14px; }
+.voucher-card { 
+    padding: 16px; display: flex; gap: 14px; cursor: pointer; 
+    transition: all 0.2s; position: relative; overflow: hidden;
+}
+.voucher-card:not(.inactive):hover {
+    box-shadow: 0 0 20px rgba(255, 116, 38, 0.3);
+    border-color: rgba(255, 116, 38, 0.4);
+    transform: translateY(-3px);
+}
+.voucher-card:active { transform: translateY(-2px); }
+.voucher-card::before { 
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; 
+    width: 5px; background: var(--orange); border-radius: 22px 0 0 22px;
+}
+.voucher-card.inactive::before { background: #1e293b; } 
+.voucher-card.inactive { 
+    opacity: 0.45; 
+    background: rgba(0, 0, 0, 0.45); 
+    border-color: rgba(255, 255, 255, 0.02); 
+}
+
+.voucher-img { width: 68px; height: 68px; border-radius: 16px; object-fit: cover; border: 1px solid var(--line); flex-shrink: 0; }
+
+.status-badge {
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    white-space: nowrap;
+    align-self: flex-start;
+    margin-top: 2px;
+}
+
+.modal-overlay { 
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); 
+    z-index: 200; 
+    display: none; 
+    align-items: flex-end;
+    opacity: 0; 
+    transition: opacity 0.35s ease;
+}
+.modal-overlay.show { opacity: 1; }
+
+#voucherModal { z-index: 210; }
+#merchantQrModal { z-index: 220; } /* Sits above voucherModal */
+
+.modal-content { 
+    background: var(--card-bg); width: 100%; 
+    border-radius: 28px 28px 0 0; padding: 24px 24px 40px; 
+    max-height: 75vh; overflow-y: auto;
+    transform: translateY(100%);
+    transition: transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1);
+    box-shadow: 0 -15px 50px rgba(0, 0, 0, 0.8), 0 -5px 25px rgba(255, 116, 38, 0.15);
+    border-top: 1px solid rgba(255, 116, 38, 0.25);
+}
+.modal-details-glow {
+    margin-top: 20px;
+    background: rgba(255, 116, 38, 0.08);
+    padding: 18px 20px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 116, 38, 0.35);
+    box-shadow: 0 0 25px rgba(255, 116, 38, 0.15), inset 0 0 12px rgba(255, 116, 38, 0.08);
+}
+.modal-overlay.show .modal-content { transform: translateY(0); }
+
+.modal-close { 
+    position: absolute; top: 16px; left: 50%; transform: translateX(-50%); 
+    width: 40px; height: 5px; background: rgba(255, 255, 255, 0.2); 
+    border: none; border-radius: 10px; cursor: pointer;
+}
+
+.notification-panel { 
+    position: absolute; top: 78px; right: 20px; 
+    background: var(--header-bg); border: 1px solid var(--line); 
+    border-radius: 18px; width: 260px; padding: 16px; 
+    box-shadow: 0 20px 40px rgba(0,0,0,0.95); 
+    display: none; flex-direction: column; gap: 12px; z-index: 150;
+}
+.notification-panel.show { display: flex; }
+
+.header-actions { display: flex; gap: 10px; }
+.icon-btn { 
+    width: 32px; height: 32px; background: var(--card-bg); 
+    border: 1px solid var(--line); border-radius: 50%; 
+    display: grid; place-items: center; font-size: 1.1rem; 
+    cursor: pointer; transition: all 0.2s; position: relative;
+}
+.icon-btn:active { background: rgba(255,116,38,0.15); }
+
+#bellBtn {
+    background: #FFFF00 !important; border-radius: 50%; transition: all 0.3s ease;
+}
+#bellBtn img { border-radius: 50%; }
+#bellBtn:hover {
+    box-shadow: 0 0 20px rgba(255, 255, 0, 1), inset 0 0 5px rgba(255, 255, 0, 0.8);
+    transform: translateY(-2px);
+}
+.notification-dot {
+    position: absolute; top: -4px; right: -4px;
+    background: #ef4444; width: 13px; height: 13px;
+    border-radius: 50%; border: 2px solid var(--app-bg);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
+    animation: ping 2s infinite;
+}
+@keyframes ping { 75% { transform: scale(1.8); opacity: 0; } }
+
+.btn-new {
+    background: var(--orange) !important; color: #ffffff !important;
+    padding: 8px 20px !important; border-radius: 9999px !important;
+    font-weight: 700 !important; font-size: 0.85rem !important;
+    text-decoration: none !important; box-shadow: 0 4px 15px rgba(255, 107, 0, 0.25);
+    transition: all 0.3s ease; display: inline-block;
+}
+.btn-new:hover {
+    background: #ff8533 !important; transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 0, 0.45);
+}
+
+.bottom-nav { 
+    position: absolute; bottom: 0; left: 0; right: 0; 
+    display: flex; justify-content: space-between; 
+    padding: 6px 12px 6px; 
+    background: var(--nav-bg); backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+.nav-item { 
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    flex: 1; gap: 2px; color: var(--muted); text-decoration: none; 
+    font-size: 0.72rem; padding: 4px 0; border-radius: 12px; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.nav-icon {
+    width: 22px; height: 22px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); filter: brightness(0.75);
+}
+.nav-item:hover .nav-icon, .nav-item.active .nav-icon {
+    transform: scale(1.15); filter: brightness(1) drop-shadow(0 0 6px var(--orange));
+}
+.nav-item:hover, .nav-item.active { 
+    color: var(--orange); background: rgba(255, 107, 0, 0.12); transform: translateY(-2px); 
+}
+
+@keyframes naturalFadeSlideUp {
+    0% { opacity: 0; transform: translateY(25px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+.stat-card, .chart-container, .voucher-card, .profile-header, .trial-banner, .section-card, .premium-card, .btn-logout {
+    opacity: 0; 
+    animation: naturalFadeSlideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.content > div:nth-child(1) .stat-card:nth-child(1) { animation-delay: 0.05s; }
+.content > div:nth-child(1) .stat-card:nth-child(2) { animation-delay: 0.15s; }
+.chart-container { animation-delay: 0.25s; }
+.voucher-list .voucher-card:nth-child(1) { animation-delay: 0.35s; }
+.voucher-list .voucher-card:nth-child(2) { animation-delay: 0.45s; }
+.voucher-list .voucher-card:nth-child(3) { animation-delay: 0.55s; }
+.voucher-list .voucher-card:nth-child(4) { animation-delay: 0.65s; }
+.voucher-list .voucher-card:nth-child(5) { animation-delay: 0.75s; }
+</style>
+</head>
+<body>
+
+<div class="stage">
+    <div class="phone">
+
+        <div class="notification-panel" id="notifPanel">
+            <h4 style="margin:0 0 12px 0; color:var(--text);">Notifications</h4>
+            {% if inactive_vouchers %}
+                {% for iv in inactive_vouchers %}
+                <div class="notification-item" style="display:flex; justify-content:space-between; align-items:center; padding-bottom:10px; border-bottom:1px solid var(--line); gap: 10px;" data-title="{{ iv.title }}">
+                    <div style="font-size:0.85rem;">
+                        <strong>{{ iv.title }}</strong><br>
+                        <span style="color:#ef4444;display:flex;align-items:center;gap:4px;margin-top:4px; font-weight: 600; text-shadow: 0 0 8px rgba(239, 68, 68, 0.4);">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(239,68,68,0.1)" stroke="#ef4444" stroke-width="3"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            Expired ({{ iv.redeemed }}/{{ iv.total }})
+                        </span>
+                    </div>
+                    <button onclick="dismissNotification(this)" 
+                            style="background:rgba(255,116,38,0.15); border:none; color:var(--orange); padding:6px 14px; border-radius:9999px; font-size:0.78rem; font-weight:600; cursor:pointer; white-space:nowrap;">
+                        Dismiss
+                    </button>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="text-align:center; color:var(--muted); padding:20px 0;">You're all caught up!</div>
+            {% endif %}
+        </div>
+
+        <div class="modal-overlay" id="listModal" onclick="if(event.target === this) closeListModal()">
+            <div class="modal-content" style="display:flex;flex-direction:column;max-height:80vh;" onclick="event.stopImmediatePropagation()">
+                <button class="modal-close" onclick="closeListModal()"></button>
+                <h3 id="listModalTitle" style="margin:20px 0 16px 0; font-size:1.18rem; text-align:left;">Filtered Vouchers</h3>
+                
+                <div id="listModalContent" class="voucher-list" style="overflow-y:auto; padding-bottom: 20px; opacity: 1; animation: none;">
+                    </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="merchantQrModal" onclick="if(event.target === this) closeMerchantQrModal()">
+            <div class="modal-content" style="text-align: center; display: flex; flex-direction: column; align-items: center;" onclick="event.stopImmediatePropagation()">
+                <button class="modal-close" onclick="closeMerchantQrModal()"></button>
+                <h3 id="merchantQrTitle" style="margin:20px 0 16px 0; font-size:1.18rem; text-align:center;"></h3>
+                <div style="background: white; padding: 15px; border-radius: 18px; display: inline-block; margin-bottom: 20px; box-shadow: inset 0 0 10px rgba(0,0,0,0.1);">
+                    <img id="merchantQrImage" src="" style="width: 180px; height: 180px; object-fit: contain; display: block;" alt="QR Code">
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="voucherModal" onclick="if(event.target === this) closeVoucherModal()">
+            <div class="modal-content" onclick="event.stopImmediatePropagation()">
+                <button class="modal-close" onclick="closeVoucherModal()"></button>
+                
+                <button type="button" onclick="openMerchantQrModal()" style="position:absolute;top:22px;left:24px;margin:0;background:rgba(255,116,38,0.15);border:none;color:var(--orange);width:36px;height:36px;border-radius:50%;cursor:pointer;display:grid;place-items:center;transition:all 0.2s;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                </button>
+
+                <form id="modalDeleteForm" action="" method="POST" style="position:absolute;top:22px;right:24px;margin:0;">
+                    <button type="submit" style="background:rgba(239,68,68,0.15);border:none;color:#ef4444;width:36px;height:36px;border-radius:50%;cursor:pointer;display:grid;place-items:center;" onclick="event.stopImmediatePropagation()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    </button>
+                </form>
+
+                <img id="modalImage" src="" style="width:100%;height:160px;object-fit:cover;border-radius:18px;margin:35px 0 20px;" alt="">
+                
+                <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
+                    <h3 id="modalTitle" style="margin:0;font-size:1.18rem;line-height:1.3;flex:1;"></h3>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                        <span id="modalStatus" class="status-badge"></span>
+                        <span id="modalExpiry" style="font-size:0.75rem;color:var(--orange);font-weight:600;"></span>
+                    </div>
+                </div>
+                
+                <div class="modal-details-glow">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="color:var(--orange);font-size:0.9rem;font-weight:700;">Vouchers Redeemed</span>
+                        <strong id="modalRedeemed" style="color:var(--text);font-size:1.1rem;text-shadow:0 0 10px rgba(255,116,38,0.8);"></strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <header class="app-header">
+            <div>
+                <span class="greeting">Hi, Boss!!!</span>
+                <h2>{{ merchant_name }}</h2>
+            </div>
+            
+            <div class="header-actions">
+                <a href="#" onclick="toggleNotifications(); return false;" class="icon-btn" style="position:relative; padding: 0; border: none; background: transparent;" id="bellBtn">
+                    <img src="/assets/icon-notify.png" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;" alt="Notifications">
+                    {% if inactive_vouchers %}
+                    <span class="notification-dot" style="z-index: 5;"></span>
+                    {% endif %}
+                </a>
+                <a href="/merchant-profile" class="icon-btn" style="overflow:hidden;" id="profileBtn">
+                    <img src="/assets/{{ merchant_name | replace(' ', '_') }}.jpg" 
+                         onerror="this.outerHTML='<div style=\'display:grid;place-items:center;width:100%;height:100%;background:#1f242e;color:#8e95a5;\'><svg width=\'24\' height=\'24\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\'><path d=\'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\'></path><polyline points=\'9 22 9 12 15 12 15 22\'></polyline></svg></div>'" 
+                         style="width:100%;height:100%;object-fit:cover;">
+                </a>
+            </div>
+        </header>
+
+        <main class="content">
+            <div style="margin-bottom:20px;">
+                <h3 style="margin:0 0 14px 0;font-size:1rem;">Overview</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                    <div class="stat-card" onclick="openListModal('redeemed')">
+                        <div style="font-size:2rem;font-weight:700;color:var(--orange);">{{ total_redeemed }}</div>
+                        <div style="font-size:0.75rem;color:var(--muted);">Total Redeemed</div>
+                    </div>
+                    <div class="stat-card" onclick="openListModal('active')">
+                        <div style="font-size:2rem;font-weight:700;color:var(--orange);">{{ active_promos }}</div>
+                        <div style="font-size:0.75rem;color:var(--muted);">Active Vouchers</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="redemptionChart"></canvas>
+            </div>
+
+           <div style="margin:20px 0 12px;display:flex;justify-content:space-between;align-items:center;">
+                <h3 style="margin:0;font-size:1rem;color:var(--text);">Current Vouchers</h3>
+                <a href="/create" class="btn-new">+ New</a>
+            </div>
+
+            <div class="voucher-list" id="mainVoucherList">
+                {% for voucher in vouchers %}
+                <div class="voucher-card {% if voucher.status.lower() != 'active' %}inactive{% endif %}" 
+                     onclick="openVoucherModal(this)"
+                     data-title="{{ voucher.title }}"
+                     data-status="{{ voucher.status }}"
+                     data-redeemed="{{ voucher.redeemed }}"
+                     data-total="{{ voucher.total }}"
+                     data-expiry="{{ voucher.expiry_date }}" 
+                     data-image="{{ voucher.image_url or 'https://image.pollinations.ai/prompt/Close up food photography of ' + voucher.clean_title + ', highly detailed?width=400&height=300' }}">
+                    
+                    <img src="{{ voucher.image_url or 'https://loremflickr.com/100/100/food' }}" class="voucher-img" onerror="this.src='https://loremflickr.com/100/100/food'">
+                    
+                    <div style="flex:1;min-width:0;">
+                        <div style="display:flex;justify-content:space-between;align-items:start;">
+                            <h4 style="margin:0;font-size:0.96rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ voucher.title }}</h4>
+                            <span class="status-badge" style="background: {% if voucher.status.lower() == 'active' %}rgba(255,116,38,0.15); color: var(--orange){% else %}rgba(0,0,0,0.6); color: #475569; border: 1px solid rgba(255,255,255,0.03);{% endif %};">{{ voucher.status }}</span>
+                        </div>
+                        
+                        <div style="margin-top:8px;font-size:0.85rem;color:var(--muted);">
+                            {{ voucher.redeemed }} / {{ voucher.total }} redeemed
+                        </div>
+                        
+                        <div class="progress-bar">
+                            <div class="progress {% if voucher.status.lower() != 'active' %}inactive{% endif %}" 
+                                 style="width: {{ ((voucher.redeemed / voucher.total) * 100)|round(1) }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </main>
+
+        <nav class="bottom-nav">
+            <a href="/merchant-main-menu" class="nav-item active">
+                <img src="/assets/icon-main-menu.svg" class="nav-icon" alt="Home">
+                <span>Home</span>
+            </a>
+            <a href="/create" class="nav-item">
+                <img src="/assets/icon-create.svg" class="nav-icon" alt="Create">
+                <span>Create</span>
+            </a>
+            <a href="/merchant-profile" class="nav-item">
+                <img src="/assets/icon-profile.svg" class="nav-icon" alt="You">
+                <span>You</span>
+            </a>
+        </nav>
+    </div>
+</div>
+
+<script>
+    // --- QR Modal Functions ---
+    function openMerchantQrModal() {
+        const title = document.getElementById('modalTitle').textContent;
+        document.getElementById('merchantQrTitle').textContent = title;
+        
+        // Generates the QR code dynamically from python using the same logic added previously
+        const encodedData = encodeURIComponent(`voucher-${title}`);
+        document.getElementById('merchantQrImage').src = `/api/qr/${encodedData}`;
+        
+        const modal = document.getElementById('merchantQrModal');
+        modal.style.display = 'flex';
+        
+        setTimeout(() => {
+            modal.classList.add('show');
+        }, 10);
+    }
+
+    function closeMerchantQrModal() {
+        const modal = document.getElementById('merchantQrModal');
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 450);
+    }
+
+    // --- Filter List Modal Functions ---
+    function openListModal(filterType) {
+        const titleLabel = document.getElementById('listModalTitle');
+        const listContent = document.getElementById('listModalContent');
+        listContent.innerHTML = ''; 
+
+        if (filterType === 'active') {
+            titleLabel.textContent = 'Active Vouchers';
+        } else if (filterType === 'redeemed') {
+            titleLabel.textContent = 'Redeemed Vouchers';
+        }
+
+        const allVouchers = document.querySelectorAll('#mainVoucherList .voucher-card');
+        
+        allVouchers.forEach(voucher => {
+            const status = voucher.dataset.status.toLowerCase();
+            const redeemedCount = parseInt(voucher.dataset.redeemed, 10);
+            
+            let includeInList = false;
+            
+            if (filterType === 'active' && status === 'active') {
+                includeInList = true;
+            } else if (filterType === 'redeemed' && redeemedCount > 0) {
+                includeInList = true;
+            }
+
+            if (includeInList) {
+                const clonedVoucher = voucher.cloneNode(true);
+                clonedVoucher.style.opacity = '1';
+                clonedVoucher.style.animation = 'none';
+                listContent.appendChild(clonedVoucher);
+            }
+        });
+
+        if (listContent.children.length === 0) {
+            listContent.innerHTML = '<div style="text-align:center; color:var(--muted); padding: 30px 0;">No vouchers match this criteria.</div>';
+        }
+
+        const modal = document.getElementById('listModal');
+        modal.style.display = 'flex';
+        
+        setTimeout(() => {
+            modal.classList.add('show');
+        }, 10);
+    }
+
+    function closeListModal() {
+        const modal = document.getElementById('listModal');
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 450);
+    }
+
+    // --- Original Modal & UI Functions ---
+    function openVoucherModal(el) {
+        const isInactive = el.classList.contains('inactive');
+        
+        document.getElementById('modalTitle').textContent = el.dataset.title;
+        
+        const statusEl = document.getElementById('modalStatus');
+        statusEl.textContent = el.dataset.status;
+        if (isInactive) {
+            statusEl.style.background = 'rgba(142,149,165,0.3)';
+            statusEl.style.color = '#8e95a5';
+        } else {
+            statusEl.style.background = 'rgba(255,116,38,0.2)';
+            statusEl.style.color = 'var(--orange)';
+        }
+        
+        document.getElementById('modalRedeemed').textContent = `${el.dataset.redeemed} / ${el.dataset.total}`;
+        document.getElementById('modalImage').src = el.dataset.image;
+        document.getElementById('modalDeleteForm').action = `/delete-voucher/${encodeURIComponent(el.dataset.title)}`;
+        
+        const expiryEl = document.getElementById('modalExpiry');
+        if (expiryEl) {
+            const expiryDate = el.dataset.expiry;
+            if (expiryDate && expiryDate !== 'No Expiry' && expiryDate !== 'None') {
+                expiryEl.textContent = 'Exp: ' + expiryDate;
+                expiryEl.style.display = 'block';
+            } else {
+                expiryEl.style.display = 'none';
+            }
+        }
+
+        const modal = document.getElementById('voucherModal');
+        modal.style.display = 'flex';
+        
+        setTimeout(() => {
+            modal.classList.add('show');
+        }, 10);
+    }
+
+    function closeVoucherModal() {
+        const modal = document.getElementById('voucherModal');
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 450);
+    }
+
+    function toggleNotifications() {
+        const panel = document.getElementById('notifPanel');
+        panel.classList.toggle('show');
+    }
+
+    function dismissNotification(btn) {
+        const item = btn.closest('.notification-item');
+        item.style.transition = 'all 0.3s ease';
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(20px)';
+        
+        setTimeout(() => {
+            item.remove();
+            const panel = document.getElementById('notifPanel');
+            if (panel.querySelectorAll('.notification-item').length === 0) {
+                const h4 = panel.querySelector('h4');
+                if (h4) h4.remove();
+                panel.innerHTML += `<div style="text-align:center; color:var(--muted); padding:20px 0;">You're all caught up!</div>`;
+            }
+            const bell = document.getElementById('bellBtn');
+            if (bell && !document.querySelector('.notification-item')) {
+                const dot = bell.querySelector('.notification-dot');
+                if (dot) dot.remove();
+            }
+        }, 300);
+    }
+
+    document.addEventListener('click', function(e) {
+        const panel = document.getElementById('notifPanel');
+        const bell = document.getElementById('bellBtn');
+        if (!panel.contains(e.target) && !bell.contains(e.target)) {
+            panel.classList.remove('show');
+        }
+    });
+
+    const ctx = document.getElementById('redemptionChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'line',
+            data: { 
+                labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], 
+                datasets: [{ 
+                    data: {{ graph_data|tojson }}, 
+                    borderColor: '#ff7426', 
+                    tension: 0.4, 
+                    borderWidth: 3,
+                    pointRadius: 4
+                }] 
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#8e95a5' }},
+                    x: { grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#8e95a5' }}
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html>

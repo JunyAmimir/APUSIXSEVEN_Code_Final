@@ -1,0 +1,3 @@
+id,date,merchant,category,amount,saved,voucher_id
+expense_1779587871616,2026-05-24,McDonald's,food,1499.99,100.00,mcdonalds
+expense_1779587484731,2026-05-24,tea,food,123.00,12.00,

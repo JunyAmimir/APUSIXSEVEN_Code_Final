@@ -19,6 +19,7 @@ load_dotenv(BASE_DIR / ".env", override=True)
 
 app = Flask(__name__, template_folder="templates", static_folder="assets")
 app.secret_key = 'create_voucher_key'
+app.config['SESSION_COOKIE_NAME'] = 'user_merchant_session'
 
 # ====================== GEMINI AI ======================
 def get_gemini_api_key():
@@ -2427,4 +2428,4 @@ if __name__ == "__main__":
     ensure_budget_settings_csv()
     ensure_budget_csv()
     ensure_base_csv_exists()
-    app.run(debug=True)
+    app.run(host="127.0.0.1", port=5000,debug=True)

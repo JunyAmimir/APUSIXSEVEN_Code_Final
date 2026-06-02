@@ -10,6 +10,7 @@ import vouchr_db
 admin_app = Flask(__name__, template_folder="templates", static_folder="assets")
 admin_app.secret_key = "vouchr_master_admin_key"
 admin_app.permanent_session_lifetime = timedelta(days=7)
+admin_app.config['SESSION_COOKIE_NAME'] = 'admin_master_session'
 
 FOOD_CATEGORIES = ["Fast Food", "Restaurants", "Café", "Desserts", "Beverages", "Sushi", "Pizza"]
 

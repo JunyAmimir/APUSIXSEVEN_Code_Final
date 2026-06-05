@@ -1,0 +1,15 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Valid at outlet">
+  <defs>
+    <filter id="orangeSoftGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.2" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 1  0 1 0 0 .45  0 0 1 0 .10  0 0 0 .42 0"/>
+      <feBlend in="SourceGraphic"/>
+    </filter>
+  </defs>
+
+  <path d="M17 29V49.5H47V29" stroke="#A3A9BA" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M22.5 49.5V39C22.5 36.8 24.3 35 26.5 35H30.5C32.7 35 34.5 36.8 34.5 39V49.5" stroke="#A3A9BA" stroke-width="2.8" stroke-linejoin="round"/>
+  <path d="M40 40H44" stroke="#747B8D" stroke-width="2.8" stroke-linecap="round"/>
+
+  <path d="M12.5 24.6L16.5 15H47.5L51.5 24.6C52.5 27 50.7 29.5 48.2 29.5C46.1 29.5 44.5 27.9 44.2 26C43.9 27.9 42.3 29.5 40.3 29.5C38.2 29.5 36.6 27.9 36.3 26C36 27.9 34.4 29.5 32.4 29.5H31.6C29.6 29.5 28 27.9 27.7 26C27.4 27.9 25.8 29.5 23.7 29.5C21.7 29.5 20.1 27.9 19.8 26C19.5 27.9 17.9 29.5 15.8 29.5C13.3 29.5 11.5 27 12.5 24.6Z" stroke="#FF7426" stroke-width="2.8" stroke-linejoin="round" filter="url(#orangeSoftGlow)"/>
+</svg>

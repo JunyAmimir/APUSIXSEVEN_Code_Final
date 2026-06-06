@@ -1,5 +1,5 @@
 from flask import Flask, json, request, redirect, render_template, send_from_directory, jsonify, session, url_for, send_file
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from urllib.parse import quote
 from werkzeug.utils import secure_filename
@@ -1259,7 +1259,7 @@ def call_openai_deal_assistant(user_message, context):
 
 @app.route("/api/ai-deal-assistant", methods=["POST"])
 def api_ai_deal_assistant():
-    if session.get("role") != "user":
+    if session.get("role") not in ["user", "merchant"]:
         return jsonify({"success": False, "error": "Unauthorized"}), 401
 
     data = request.get_json(silent=True) or {}
@@ -1563,7 +1563,7 @@ def call_openai_help_center(user_message, context):
 
 @app.route("/api/help-center", methods=["POST"])
 def api_help_center():
-    if session.get("role") != "user":
+    if session.get("role") not in {"user", "merchant"}:
         return jsonify({"success": False, "error": "Unauthorized"}), 401
 
     data = request.get_json(silent=True) or {}
@@ -1604,13 +1604,50 @@ def api_announcements():
 @app.route("/api/announcements/active")
 def api_active_announcements():
     user_id, audience_role = current_announcement_identity()
+    announcements = vouchr_db.active_announcements_for_user(user_id, audience_role)
     return jsonify({
         "success": True,
-        "announcements": vouchr_db.active_announcements_for_user(user_id, audience_role),
+        "announcements": announcements,
+        "unread_count": len(announcements),
         "role": audience_role
     })
 
 def current_db_user_id():
+    """Return the database user id for the logged-in customer or merchant session."""
+    role = session.get("role", "unknown")
+
+    if role == "merchant":
+        merchant_name = str(session.get("merchant_name", "") or "").strip()
+        if merchant_name:
+            merchant = vouchr_db.query_one(
+                "SELECT id, user_id, business_name FROM merchants WHERE lower(business_name) = lower(?)",
+                (merchant_name,),
+            )
+            if merchant and merchant.get("user_id"):
+                return merchant["user_id"]
+
+            # If the merchant exists in CSV but has not been synced into SQLite yet,
+            # create/update the merchant login user first so live chat can be attached
+            # to the real merchant account instead of a fallback customer account.
+            for row in read_merchants():
+                if str(row.get("name") or "").strip().lower() == merchant_name.lower():
+                    return vouchr_db.upsert_merchant(
+                        row.get("name") or merchant_name,
+                        row.get("email") or "",
+                        row.get("password") or "",
+                        row.get("address") or "",
+                        row.get("id"),
+                        row.get("created_at"),
+                    ) and vouchr_db.query_one(
+                        "SELECT user_id FROM merchants WHERE lower(business_name) = lower(?)",
+                        (merchant_name,),
+                    )["user_id"]
+
+            merchant_id = vouchr_db.upsert_merchant(merchant_name)
+            merchant = vouchr_db.query_one("SELECT user_id FROM merchants WHERE id = ?", (merchant_id,))
+            if merchant and merchant.get("user_id"):
+                return merchant["user_id"]
+
     user = vouchr_db.get_user_by_email_or_name(
         session.get("user_email", ""),
         session.get("user_name", "User")
@@ -1634,21 +1671,24 @@ def current_announcement_identity():
         return user_id, "customer"
 
     if role == "merchant":
-        merchant_name = session.get("merchant_name", "")
-        merchant = vouchr_db.query_one(
-            "SELECT user_id FROM merchants WHERE lower(business_name) = lower(?)",
-            (merchant_name,),
-        )
-        return (merchant["user_id"] if merchant else None), "merchant"
+        # Use the merchant login account's database user_id so merchant announcements
+        # can be filtered and marked as read just like customer announcements.
+        return current_db_user_id(), "merchant"
 
     return None, "unknown"
 
 
 def current_live_support_user():
-    if session.get("role") != "user":
+    """Allow both customer and merchant sessions to open live support chats."""
+    if session.get("role") not in {"user", "merchant"}:
         return None, jsonify({"success": False, "error": "Login required"}), 401
+
     user_id = current_db_user_id()
     user = vouchr_db.query_one("SELECT * FROM users WHERE id = ?", (user_id,))
+
+    if not user:
+        return None, jsonify({"success": False, "error": "Account not found"}), 404
+
     return user, None, None
 
 
@@ -1703,7 +1743,7 @@ def api_live_support_start():
     first_message = str(data.get("message") or "").strip()
     support_session = vouchr_db.start_live_support_session(user["id"], subject)
     if first_message:
-        vouchr_db.add_live_support_message(support_session["id"], user["id"], "customer", first_message)
+        vouchr_db.add_live_support_message(support_session["id"], user["id"], user.get("role") or "customer", first_message)
         support_session = vouchr_db.get_live_support_session(support_session["id"])
 
     return jsonify({
@@ -1745,7 +1785,7 @@ def api_live_support_send(session_id):
     message = str(data.get("message") or "").strip()
     if not message:
         return jsonify({"success": False, "error": "Message is required"}), 400
-    vouchr_db.add_live_support_message(session_id, user["id"], "customer", message)
+    vouchr_db.add_live_support_message(session_id, user["id"], user.get("role") or "customer", message)
     return jsonify({
         "success": True,
         "session": vouchr_db.get_live_support_session(session_id),
@@ -1765,7 +1805,7 @@ def api_live_support_end(session_id):
         session_id,
         status="ended",
         actor_id=user["id"],
-        message="The customer ended this live support chat."
+        message=("The merchant ended this live support chat." if user.get("role") == "merchant" else "The customer ended this live support chat.")
     )
     return jsonify({
         "success": True,
@@ -1781,30 +1821,110 @@ def api_activity_save_voucher():
     data = request.get_json(silent=True) or {}
     voucher_id = str(data.get("voucher_id") or data.get("id") or "").strip()
     voucher_name = str(data.get("voucher_name") or data.get("name") or "Voucher").strip()
+    voucher_title = str(data.get("voucher_title") or data.get("title") or "").strip()
+    merchant_name = str(data.get("merchant_name") or data.get("merchant") or "").strip()
+
+    def normalise(value):
+        return slugify(str(value or ""))
+
+    incoming_voucher_id = normalise(voucher_id)
+    incoming_title = normalise(voucher_title)
+    incoming_name = normalise(voucher_name)
+    incoming_merchant = normalise(merchant_name)
+
+    matched_voucher = None
+    all_vouchers = get_all_vouchers()
+
+    # 1) Best match: exact voucher id from the merchant CSV / DB.
+    if incoming_voucher_id:
+        for voucher in all_vouchers:
+            if normalise(voucher.get("id")) == incoming_voucher_id:
+                matched_voucher = voucher
+                break
+
+    # 2) Strong match: same merchant + same voucher title / offer.
+    if not matched_voucher and incoming_merchant:
+        for voucher in all_vouchers:
+            merchant_candidates = {
+                normalise(voucher.get("merchant_name")),
+                normalise(voucher.get("name")),
+            }
+            title_candidates = {
+                normalise(voucher.get("VoucherTitle")),
+                normalise(voucher.get("offer")),
+                normalise(voucher.get("description")),
+            }
+            incoming_titles = {incoming_title, incoming_name}
+            if incoming_merchant in merchant_candidates and (title_candidates & incoming_titles):
+                matched_voucher = voucher
+                break
+
+    # 3) Fallback match: voucher title / offer only.
+    if not matched_voucher:
+        for voucher in all_vouchers:
+            title_candidates = {
+                normalise(voucher.get("id")),
+                normalise(voucher.get("VoucherTitle")),
+                normalise(voucher.get("offer")),
+            }
+            incoming_titles = {incoming_voucher_id, incoming_title, incoming_name}
+            if title_candidates & incoming_titles:
+                matched_voucher = voucher
+                break
+
+    if matched_voucher:
+        voucher_id = matched_voucher.get("id") or voucher_id or slugify(voucher_title or voucher_name)
+        voucher_name = matched_voucher.get("merchant_name") or matched_voucher.get("name") or voucher_name or "Voucher"
+        voucher_title = matched_voucher.get("VoucherTitle") or matched_voucher.get("offer") or voucher_title or voucher_name
+        merchant_name = matched_voucher.get("merchant_name") or matched_voucher.get("name") or merchant_name or "Merchant"
 
     if not voucher_id:
-        voucher_id = slugify(voucher_name)
+        voucher_id = slugify(voucher_title or voucher_name)
 
-    existing = vouchr_db.query_one("SELECT id FROM vouchers WHERE id = ?", (voucher_id,))
+    existing = vouchr_db.query_one("SELECT id, merchant_id FROM vouchers WHERE id = ?", (voucher_id,))
     if not existing:
-        vouchr_db.upsert_voucher("Demo Merchant", {
+        vouchr_db.upsert_voucher(merchant_name or "Demo Merchant", {
             "id": voucher_id,
-            "VoucherTitle": voucher_name,
+            "VoucherTitle": voucher_title or voucher_name,
             "Status": "Active",
-            "Total": 0,
-            "Redeemed": 0
+            "Total": matched_voucher.get("Total", 0) if matched_voucher else 0,
+            "Redeemed": matched_voucher.get("Redeemed", 0) if matched_voucher else 0,
+            "ExpiryDate": matched_voucher.get("ExpiryDate", "") if matched_voucher else "",
+            "Address": matched_voucher.get("Address", matched_voucher.get("location", "")) if matched_voucher else "",
+            "ImageUrl": matched_voucher.get("ImageUrl", matched_voucher.get("logo", "/assets/default-logo.png")) if matched_voucher else "/assets/default-logo.png",
         })
+        existing = vouchr_db.query_one("SELECT id, merchant_id FROM vouchers WHERE id = ?", (voucher_id,))
 
     user_id = current_db_user_id()
+    saved_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     vouchr_db.execute(
         """
         INSERT OR IGNORE INTO saved_vouchers (user_id, voucher_id, saved_at)
         VALUES (?, ?, ?)
         """,
-        (user_id, voucher_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        (user_id, voucher_id, saved_at)
     )
 
-    return jsonify({"success": True})
+    merchant_id = existing.get("merchant_id") if existing else None
+    merchant_saves = 0
+    if merchant_id:
+        total_saves = vouchr_db.query_one(
+            """
+            SELECT COUNT(*) AS c
+            FROM saved_vouchers sv
+            JOIN vouchers v ON sv.voucher_id = v.id
+            WHERE v.merchant_id = ?
+            """,
+            (merchant_id,)
+        )
+        merchant_saves = int(total_saves["c"] if total_saves else 0)
+
+    return jsonify({
+        "success": True,
+        "voucher_id": voucher_id,
+        "merchant_id": merchant_id,
+        "merchant_saves": merchant_saves
+    })
 
 @app.route("/api/activity/redeem-voucher", methods=["POST"])
 def api_activity_redeem_voucher():
@@ -1917,17 +2037,28 @@ def profile():
 
 @app.route("/support", methods=["GET", "POST"])
 def support():
-    if session.get("role") != "user":
+    role = session.get("role")
+    if role not in {"user", "merchant"}:
         return redirect("/auth.html")
 
-    user = vouchr_db.get_user_by_email_or_name(
-        session.get("user_email", ""),
-        session.get("user_name", "User")
-    )
-    user_id = user["id"] if user else vouchr_db.ensure_user(
-        session.get("user_name", "User"),
-        session.get("user_email", "")
-    )
+    is_merchant = role == "merchant"
+
+    if is_merchant:
+        merchant_name = session.get("merchant_name", "Merchant")
+        user_id = current_db_user_id()
+        display_name = merchant_name
+        back_href = "/merchant-profile"
+    else:
+        user = vouchr_db.get_user_by_email_or_name(
+            session.get("user_email", ""),
+            session.get("user_name", "User")
+        )
+        user_id = user["id"] if user else vouchr_db.ensure_user(
+            session.get("user_name", "User"),
+            session.get("user_email", "")
+        )
+        display_name = session.get("user_name", "User")
+        back_href = "/profile"
 
     if request.method == "POST":
         action = request.form.get("action", "create")
@@ -1940,7 +2071,7 @@ def support():
                 (ticket_id, user_id)
             )
             if ticket and message:
-                vouchr_db.add_ticket_message(ticket_id, user_id, "customer", message)
+                vouchr_db.add_ticket_message(ticket_id, user_id, "merchant" if is_merchant else "customer", message)
             return redirect(f"/support?ticket_id={ticket_id}")
 
         subject = request.form.get("subject", "").strip()
@@ -1968,7 +2099,9 @@ def support():
         tickets=tickets,
         selected_ticket=selected_ticket,
         messages=messages,
-        user_name=session.get("user_name", "User")
+        user_name=display_name,
+        is_merchant=is_merchant,
+        back_href=back_href
     )
 
 @app.route("/logout")
@@ -1993,6 +2126,15 @@ def merchant_main_menu():
         return redirect("/auth.html")
     
     auto_update_voucher_statuses(merchant_name)
+
+    # Keep the SQLite voucher table aligned with the latest merchant CSV files
+    # before calculating merchant analytics such as saves and redemptions.
+    vouchr_db.sync_from_csv()
+    merchant_row = vouchr_db.query_one(
+        "SELECT id FROM merchants WHERE lower(business_name) = lower(?)",
+        (merchant_name,),
+    )
+    merchant_id = merchant_row["id"] if merchant_row else vouchr_db.upsert_merchant(merchant_name)
 
     csv_filepath = get_merchant_csv_path(merchant_name)
     vouchers = []
@@ -2054,7 +2196,8 @@ def merchant_main_menu():
                         'total': total,
                         'percentage': percentage,
                         'image_url': image_url,
-                        'expiry_date': expiry_date # <-- ADD THIS HERE
+                        'expiry_date': expiry_date,
+                        'expiry_raw': raw_date
                     }
                     
                     vouchers.append(voucher_data)
@@ -2069,14 +2212,140 @@ def merchant_main_menu():
                 except Exception as e:
                     print(f"Skipped bad row: {row}, Error: {e}")
 
-    graph_data = [10, 15, 5, 10, 20, 30, 25]
+    today = datetime.now()
+    graph_data = []
+    chart_labels = []
+
+    for i in range(6, -1, -1):
+        target_date = (today - timedelta(days=i)).strftime("%Y-%m-%d")
+        chart_labels.append((today - timedelta(days=i)).strftime("%d %b"))
+
+        # Count actual redemptions for this specific merchant on this day.
+        daily_count = vouchr_db.query_one(
+            "SELECT COUNT(*) as c FROM voucher_redemptions WHERE merchant_id = ? AND substr(redeemed_at, 1, 10) = ?",
+            (merchant_id, target_date)
+        )
+        graph_data.append(int(daily_count["c"] if daily_count else 0))
+
+    def build_demo_weekly_redemptions(total_amount):
+        """Return seven fake daily values whose sum never exceeds total_amount."""
+        total_amount = max(0, int(total_amount or 0))
+        if total_amount <= 0:
+            return [0, 0, 0, 0, 0, 0, 0]
+
+        # Keep the weekly demo realistic: recent seven days are a portion of total redemptions,
+        # but still visible even when the merchant only has a few redemptions.
+        weekly_total = min(total_amount, max(1, round(total_amount * 0.6)))
+        weights = [1, 2, 1, 3, 2, 4, 3]
+        values = [0] * 7
+
+        for _ in range(weekly_total):
+            index = max(range(7), key=lambda idx: weights[idx] / (values[idx] + 1))
+            values[index] += 1
+
+        return values
+
+    # Use presentation-friendly fake daily numbers when the real redemption table has no entries.
+    # The fake weekly total is capped so it never exceeds the Total Redeemed card.
+    if not any(graph_data):
+        if total_redeemed <= 0:
+            total_redeemed = 8
+        graph_data = build_demo_weekly_redemptions(total_redeemed)
+
+    # Safety cap: even if database data is odd, the seven-day graph cannot exceed total redeemed.
+    weekly_sum = sum(graph_data)
+    if total_redeemed >= 0 and weekly_sum > total_redeemed:
+        overflow = weekly_sum - total_redeemed
+        for index in range(len(graph_data) - 1, -1, -1):
+            remove_amount = min(graph_data[index], overflow)
+            graph_data[index] -= remove_amount
+            overflow -= remove_amount
+            if overflow <= 0:
+                break
+
+    # 2. Calculate Funnel Metrics (Views -> Saves -> Redemptions)
+    total_saves = vouchr_db.query_one(
+        """
+        SELECT COUNT(*) as c
+        FROM saved_vouchers sv
+        JOIN vouchers v ON sv.voucher_id = v.id
+        WHERE v.merchant_id = ?
+        """,
+        (merchant_id,)
+    )
+    saves_count = int(total_saves["c"] if total_saves else 0)
+    
+    # Since we do not track pure view impressions yet, show a stronger presentation-friendly
+    # estimate based on active voucher reach, saves, and actual redemptions.
+    # This makes Total Views visibly higher than Voucher Saves and Actual Redemptions.
+    views_count = (saves_count * 9) + (active_promos * 160) + (total_redeemed * 14)
+
+    # Keep Voucher Saves as real database data so customer Save Voucher clicks
+    # are reflected accurately in the merchant statistics.
+    if views_count <= 0:
+        views_count = 0
+    else:
+        views_count = max(views_count, saves_count, total_redeemed)
+
+    funnel_data = {
+        "views": views_count,
+        "saves": saves_count,
+        "redemptions": total_redeemed
+    }
+
     return render_template('merchant_main_menu.html', 
                            merchant_name=merchant_name, 
                            total_redeemed=total_redeemed, 
                            active_promos=active_promos, 
                            vouchers=vouchers, 
                            inactive_vouchers=inactive_vouchers, 
-                           graph_data=graph_data)
+                           graph_data=graph_data,
+                           chart_labels=chart_labels,
+                           funnel_data=funnel_data)
+
+
+@app.route("/api/merchant/voucher-statistics")
+def api_merchant_voucher_statistics():
+    merchant_name = session.get("merchant_name")
+    if not merchant_name:
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    vouchr_db.sync_from_csv()
+    merchant_row = vouchr_db.query_one(
+        "SELECT id FROM merchants WHERE lower(business_name) = lower(?)",
+        (merchant_name,),
+    )
+    merchant_id = merchant_row["id"] if merchant_row else vouchr_db.upsert_merchant(merchant_name)
+
+    total_saves = vouchr_db.query_one(
+        """
+        SELECT COUNT(*) AS c
+        FROM saved_vouchers sv
+        JOIN vouchers v ON sv.voucher_id = v.id
+        WHERE v.merchant_id = ?
+        """,
+        (merchant_id,)
+    )
+    total_redemptions = vouchr_db.query_one(
+        "SELECT COALESCE(SUM(redeemed_count), 0) AS c FROM vouchers WHERE merchant_id = ?",
+        (merchant_id,)
+    )
+    active_promos = vouchr_db.query_one(
+        "SELECT COUNT(*) AS c FROM vouchers WHERE merchant_id = ? AND status = 'active'",
+        (merchant_id,)
+    )
+
+    saves_count = int(total_saves["c"] if total_saves else 0)
+    redemptions_count = int(total_redemptions["c"] if total_redemptions else 0)
+    active_count = int(active_promos["c"] if active_promos else 0)
+    views_count = max((saves_count * 9) + (active_count * 160) + (redemptions_count * 14), saves_count, redemptions_count)
+
+    return jsonify({
+        "success": True,
+        "views": views_count,
+        "saves": saves_count,
+        "redemptions": redemptions_count
+    })
 
 @app.route("/api/qr/<path:data>")
 def generate_qr(data):
@@ -2167,6 +2436,92 @@ def auto_update_voucher_statuses(merchant_name):
             writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(updated_rows)
+
+
+@app.route("/update-voucher/<string:voucher_title>", methods=["POST"])
+def update_voucher(voucher_title):
+    merchant_name = session.get("merchant_name")
+    if not merchant_name:
+        return redirect("/auth.html")
+
+    csv_filepath = get_merchant_csv_path(merchant_name)
+    if not csv_filepath.exists():
+        return redirect("/merchant-main-menu")
+
+    raw_total = str(request.form.get("total_supply", "")).strip()
+    raw_expiry = str(request.form.get("expiry_date", "")).strip()
+
+    try:
+        total_supply = max(1, int(float(raw_total)))
+    except (TypeError, ValueError):
+        return redirect("/merchant-main-menu")
+
+    if raw_expiry:
+        try:
+            datetime.strptime(raw_expiry, "%Y-%m-%d")
+        except ValueError:
+            raw_expiry = ""
+
+    updated_rows = []
+    fieldnames = []
+    matched_row = None
+
+    with open(csv_filepath, "r", newline="", encoding="utf-8-sig") as file:
+        reader = csv.DictReader(file, skipinitialspace=True)
+        fieldnames = list(reader.fieldnames or [])
+        for required_field in ["VoucherTitle", "Status", "Redeemed", "Total", "ExpiryDate", "Address", "ImageUrl", "Dismissed"]:
+            if required_field not in fieldnames:
+                fieldnames.append(required_field)
+
+        for row in reader:
+            if str(row.get("VoucherTitle", "")).strip() == voucher_title:
+                try:
+                    redeemed = int(row.get("Redeemed") or 0)
+                except ValueError:
+                    redeemed = 0
+
+                if total_supply < max(1, redeemed):
+                    total_supply = max(1, redeemed)
+
+                row["Total"] = str(total_supply)
+                row["ExpiryDate"] = raw_expiry
+                row["Dismissed"] = "False"
+
+                # Keep the status synced after editing. Expired dates or fully redeemed vouchers become inactive.
+                new_status = "Active"
+                if raw_expiry:
+                    try:
+                        if datetime.strptime(raw_expiry, "%Y-%m-%d").date() < datetime.now().date():
+                            new_status = "Inactive"
+                    except ValueError:
+                        pass
+                if total_supply <= 0 or redeemed >= total_supply:
+                    new_status = "Inactive"
+                row["Status"] = new_status
+                matched_row = dict(row)
+
+            updated_rows.append(row)
+
+    with open(csv_filepath, "w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(updated_rows)
+
+    if matched_row:
+        # Also keep the SQLite voucher table aligned so user-side voucher data updates immediately.
+        created_voucher = build_voucher_object(matched_row, merchant_name)
+        vouchr_db.upsert_voucher(merchant_name, {
+            "id": created_voucher["id"],
+            "VoucherTitle": matched_row.get("VoucherTitle", voucher_title),
+            "Status": matched_row.get("Status", "Active"),
+            "Redeemed": matched_row.get("Redeemed", 0),
+            "Total": matched_row.get("Total", total_supply),
+            "ExpiryDate": matched_row.get("ExpiryDate", raw_expiry),
+            "Address": matched_row.get("Address", get_merchant_address(merchant_name)),
+            "ImageUrl": matched_row.get("ImageUrl", "/assets/default-logo.png")
+        }, log_activity=True)
+
+    return redirect("/merchant-main-menu")
 
 @app.route("/delete-voucher/<string:voucher_title>", methods=["POST"])
 def delete_voucher(voucher_title):
@@ -2401,38 +2756,147 @@ def merchant_profile():
     if not merchant_name:
         return redirect("/auth.html")
 
-    if request.method == "POST":
-        new_password = request.form.get("new_password")
+    merchant_record = None
+    merchants = read_merchants()
+    for merchant in merchants:
+        if str(merchant.get("name", "")).strip() == merchant_name:
+            merchant_record = merchant
+            break
 
-        if new_password and new_password.strip():
-            temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, newline='', encoding='utf-8')
-            password_updated = False
-            
+    if merchant_record is None:
+        return redirect("/auth.html")
+
+    if request.method == "POST":
+        form_action = request.form.get("form_action", "password").strip()
+
+        # ---------------------------
+        # Update password
+        # ---------------------------
+        if form_action == "password":
+            new_password = request.form.get("new_password", "").strip()
+
+            if new_password:
+                temp_file = tempfile.NamedTemporaryFile(mode="w", delete=False, newline="", encoding="utf-8")
+                password_updated = False
+
+                try:
+                    with open(Merchant_File, "r", encoding="utf-8-sig", newline="") as file, temp_file:
+                        reader = csv.DictReader(file)
+                        fieldnames = reader.fieldnames or CSV_FIELDS
+                        writer = csv.DictWriter(temp_file, fieldnames=fieldnames)
+                        writer.writeheader()
+
+                        for row in reader:
+                            if str(row.get("name", "")).strip() == merchant_name:
+                                row["password"] = new_password
+                                password_updated = True
+                            writer.writerow(row)
+
+                    shutil.move(temp_file.name, Merchant_File)
+
+                    if password_updated:
+                        return redirect("/merchant-profile?success=1")
+                    return redirect("/merchant-profile?error=1")
+
+                except Exception as error:
+                    print(f"Password update error: {error}")
+                    try:
+                        os.unlink(temp_file.name)
+                    except Exception:
+                        pass
+                    return redirect("/merchant-profile?error=1")
+
+        # ---------------------------
+        # Update merchant profile
+        # ---------------------------
+        if form_action == "profile":
+            new_name = request.form.get("merchant_name", "").strip()
+            new_email = request.form.get("merchant_email", "").strip().lower()
+            new_address = request.form.get("merchant_address", "").strip()
+
+            if not new_name or not new_email or not new_address:
+                return redirect("/merchant-profile?profile_error=missing")
+
+            if not is_valid_email(new_email):
+                return redirect("/merchant-profile?profile_error=email")
+
+            temp_file = tempfile.NamedTemporaryFile(mode="w", delete=False, newline="", encoding="utf-8")
+            old_name = merchant_name
+            old_email = str(merchant_record.get("email", "")).strip().lower()
+            profile_updated = False
+
             try:
-                with open(Merchant_File, 'r', encoding='utf-8-sig') as file, temp_file:
+                with open(Merchant_File, "r", encoding="utf-8-sig", newline="") as file, temp_file:
                     reader = csv.DictReader(file)
-                    fieldnames = reader.fieldnames
+                    fieldnames = reader.fieldnames or CSV_FIELDS
                     writer = csv.DictWriter(temp_file, fieldnames=fieldnames)
                     writer.writeheader()
-                    
+
                     for row in reader:
-                        if str(row.get('name', '')).strip() == merchant_name:
-                            row['password'] = new_password.strip()
-                            password_updated = True
+                        row_name = str(row.get("name", "")).strip()
+                        row_email = str(row.get("email", "")).strip().lower()
+
+                        # Prevent duplicate email on another merchant account.
+                        if row_name != old_name and row_email == new_email:
+                            try:
+                                os.unlink(temp_file.name)
+                            except Exception:
+                                pass
+                            return redirect("/merchant-profile?profile_error=duplicate_email")
+
+                        if row_name == old_name:
+                            row["name"] = new_name
+                            row["email"] = new_email
+                            row["address"] = new_address
+                            profile_updated = True
+
                         writer.writerow(row)
 
                 shutil.move(temp_file.name, Merchant_File)
-                
-                if password_updated:
-                    return redirect("/merchant-profile?success=1")
-                else:
-                    return redirect("/merchant-profile?error=1")
 
-            except Exception as e:
-                print(f"Password update error: {e}")
-                return redirect("/merchant-profile?error=1")
-                
-    return render_template("merchant_profile.html", merchant_name=merchant_name)
+                # Keep merchant session aligned with the new name.
+                if profile_updated:
+                    session["merchant_name"] = new_name
+
+                    # Rename the merchant voucher CSV if it exists, so created vouchers stay linked.
+                    old_voucher_csv = get_merchant_csv_path(old_name)
+                    new_voucher_csv = get_merchant_csv_path(new_name)
+                    if old_name != new_name and old_voucher_csv.exists() and not new_voucher_csv.exists():
+                        old_voucher_csv.rename(new_voucher_csv)
+
+                    # Save/replace merchant picture using the same naming style used during signup.
+                    uploaded_file = request.files.get("merchant_image")
+                    if uploaded_file and uploaded_file.filename:
+                        safe_merchant_name = new_name.replace(" ", "_")
+                        image_path = ASSETS_DIR / f"{safe_merchant_name}.jpg"
+                        uploaded_file.save(image_path)
+
+                        # Remove old image when name changed, if it is different.
+                        old_image_path = ASSETS_DIR / f"{old_name.replace(' ', '_')}.jpg"
+                        if old_image_path != image_path and old_image_path.exists():
+                            try:
+                                old_image_path.unlink()
+                            except Exception:
+                                pass
+
+                    return redirect("/merchant-profile?profile_success=1")
+
+                return redirect("/merchant-profile?profile_error=1")
+
+            except Exception as error:
+                print(f"Merchant profile update error: {error}")
+                try:
+                    os.unlink(temp_file.name)
+                except Exception:
+                    pass
+                return redirect("/merchant-profile?profile_error=1")
+
+    return render_template(
+        "merchant_profile.html",
+        merchant_name=merchant_record.get("name", merchant_name),
+        merchant_email=merchant_record.get("email", ""),
+        merchant_address=merchant_record.get("address", "")
+    )
 
 @app.route("/signout", methods=["GET", "POST"])
 def signout():

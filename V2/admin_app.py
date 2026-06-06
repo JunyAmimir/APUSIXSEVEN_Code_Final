@@ -720,6 +720,44 @@ def api_admin_announcements():
     })
 
 
+
+
+@admin_app.route("/announcements/<int:announcement_id>/delete", methods=["GET", "POST"])
+def delete_admin_announcement(announcement_id):
+    admin = require_admin()
+    if not admin:
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return jsonify({"success": False, "error": "Admin login required"}), 401
+        return redirect(url_for("login"))
+
+    announcement = vouchr_db.query_one(
+        "SELECT * FROM announcements WHERE id = ?",
+        (announcement_id,),
+    )
+
+    if announcement:
+        vouchr_db.execute(
+            "DELETE FROM announcement_reads WHERE announcement_id = ?",
+            (announcement_id,),
+        )
+        vouchr_db.execute(
+            "DELETE FROM announcements WHERE id = ?",
+            (announcement_id,),
+        )
+        vouchr_db.add_audit(
+            admin["id"],
+            "delete_announcement",
+            "announcement",
+            announcement_id,
+            announcement.get("title", ""),
+        )
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return jsonify({"success": True, "deleted": bool(announcement)})
+
+    return redirect(url_for("announcements"))
+
+
 @admin_app.route("/settings")
 def settings():
     return render_admin("settings")

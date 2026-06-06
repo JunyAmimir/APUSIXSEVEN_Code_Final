@@ -2840,11 +2840,14 @@ body.notifications-open {
 
 .category-voucher-card:hover {
     transform: translateY(-2px);
-    border-color: rgba(255,116,38,.34);
+    border-color: rgba(255,116,38,.72);
     background:
-        radial-gradient(circle at 92% 20%, rgba(255,116,38,.13), transparent 30%),
+        radial-gradient(circle at 92% 20%, rgba(255,116,38,.18), transparent 34%),
         rgba(255,255,255,.055);
-    box-shadow: 0 12px 24px rgba(0,0,0,.22);
+    box-shadow:
+        0 12px 26px rgba(0,0,0,.28),
+        0 0 20px rgba(255,116,38,.18),
+        inset 0 0 16px rgba(255,116,38,.05);
 }
 
 .category-voucher-card:active {
@@ -2909,6 +2912,34 @@ body.notifications-open {
     font-size: 10.5px;
     font-weight: 950;
     white-space: nowrap;
+    cursor: pointer;
+    transition:
+        transform .18s ease,
+        background .18s ease,
+        border-color .18s ease,
+        box-shadow .18s ease,
+        color .18s ease;
+}
+
+.category-view-btn:hover,
+.category-view-btn:focus-visible {
+    transform: translateY(-1px);
+    background: rgba(255,116,38,.18);
+    border-color: rgba(255,116,38,.94);
+    color: #ff812f;
+    box-shadow:
+        0 8px 18px rgba(255,116,38,.16),
+        0 0 14px rgba(255,116,38,.12);
+}
+
+.category-view-btn:focus-visible {
+    outline: 2px solid rgba(255,116,38,.34);
+    outline-offset: 2px;
+}
+
+.category-view-btn:active {
+    transform: scale(.95);
+    box-shadow: 0 4px 10px rgba(255,116,38,.12);
 }
 
 .category-empty {
@@ -5508,6 +5539,74 @@ body,
 </style>
 <link rel="stylesheet" href="/assets/customer_phone_frame.css">
 <style>
+/* Home category hover: a softer preview than the selected orange state. */
+.phone .voucher-category-strip:not(.is-dragging)
+    .voucher-category-card:not(.is-active):hover {
+    color: #f29a68 !important;
+    border-color: rgba(255, 116, 38, .52) !important;
+    background: rgba(255, 116, 38, .075) !important;
+    box-shadow:
+        0 8px 18px rgba(0, 0, 0, .18),
+        0 0 14px rgba(255, 116, 38, .10),
+        inset 0 0 0 1px rgba(255, 116, 38, .04) !important;
+    transform: translateY(-2px);
+}
+
+.phone .voucher-category-strip:not(.is-dragging)
+    .voucher-category-card:not(.is-active):hover .voucher-category-icon {
+    filter: drop-shadow(0 0 4px rgba(255, 116, 38, .24));
+}
+
+.phone .voucher-category-strip:not(.is-dragging)
+    .voucher-category-card:not(.is-active):hover .voucher-category-label {
+    color: #f29a68 !important;
+}
+
+/* Silver phone frame fit for home search/category overlays.
+   Older home-page rules used the full .phone box and covered the metal frame. */
+.phone > #categoryOverlay,
+.phone > #searchResultsOverlay {
+    inset: var(--vouchr-frame-gap) !important;
+    width: auto !important;
+    height: auto !important;
+    max-width: none !important;
+    max-height: none !important;
+    border-radius: var(--vouchr-screen-radius) !important;
+}
+
+.phone > #categoryOverlay {
+    z-index: 68000 !important;
+    padding: 0 !important;
+}
+
+.phone > #categoryOverlay .category-sheet {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: calc(100% - 44px) !important;
+    padding: 13px 14px calc(var(--bottom-nav-height, 78px) + 14px) !important;
+    border-radius: 26px 26px 0 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+.phone > #categoryOverlay #categoryVoucherList {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    padding: 0 0 8px !important;
+}
+
+.phone > #categoryOverlay.active ~ .bottom-nav,
+.phone:has(> #categoryOverlay.active) > .bottom-nav {
+    left: var(--vouchr-frame-gap) !important;
+    right: var(--vouchr-frame-gap) !important;
+    bottom: var(--vouchr-frame-gap) !important;
+    width: auto !important;
+    z-index: 70000 !important;
+    pointer-events: auto !important;
+}
+
 /* Customer home bottom fit: keep nav clearance without leaving a large empty tail. */
 .phone > .app-scroll {
     padding-bottom: calc(var(--bottom-nav-height, 78px) + 14px) !important;

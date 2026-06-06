@@ -24,12 +24,21 @@ app.config.update(
 )
 
 # ====================== GEMINI AI ======================
+def refresh_ai_environment():
+    """Reload local AI settings so key changes work without editing application code."""
+    load_dotenv(BASE_DIR / ".env", override=True)
+
 def get_gemini_api_key():
+    refresh_ai_environment()
     return (
         os.getenv("GEMINI_API_KEY", "").strip()
         or os.getenv("GOOGLE_API_KEY", "").strip()
         or os.getenv("GOOGLE_AI_API_KEY", "").strip()
     )
+
+def get_openai_api_key():
+    refresh_ai_environment()
+    return os.getenv("OPENAI_API_KEY", "").strip()
 
 GEMINI_API_KEY = get_gemini_api_key()
 if GEMINI_API_KEY:
@@ -1063,7 +1072,7 @@ def call_gemini_text(prompt, label="AI"):
         return None, str(error)
 
 def call_openai_text(system_prompt, user_payload, label="AI", max_tokens=220):
-    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    api_key = get_openai_api_key()
 
     if not api_key:
         return None, "OPENAI_API_KEY is missing"
@@ -2328,6 +2337,11 @@ def generate_ai():
         return jsonify({"error": "No idea provided"}), 400
 
     try:
+        api_key = get_gemini_api_key()
+        if not api_key:
+            return jsonify({"error": "GEMINI_API_KEY is missing"}), 503
+
+        genai.configure(api_key=api_key)
         available_models = []
         for m in genai.list_models():
             if 'generateContent' in m.supported_generation_methods:

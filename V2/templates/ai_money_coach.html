@@ -1774,20 +1774,6 @@ async function loadCoach(message = "") {
     }
 }
 
-coachForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const text = coachInput.value.trim();
-    if (!text) return;
-
-    addMessage(text, "user");
-    coachInput.value = "";
-
-    await loadCoach(text);
-});
-
-
-
 document.getElementById("refreshCoach").addEventListener("click", () => {
     loadCoach();
 });

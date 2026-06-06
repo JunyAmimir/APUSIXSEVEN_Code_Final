@@ -308,7 +308,7 @@ def login():
             vouchr_db.add_audit(admin["id"], "admin_login", "admin", admin["id"], "Master admin login")
             return redirect(url_for("dashboard"))
         error = "Invalid admin login."
-    return render_template("admin_login.html", error=error)
+    return render_template("admin/admin_login.html", error=error)
 
 
 @admin_app.route("/logout")
@@ -439,7 +439,7 @@ def render_admin(active):
     ctx = page_context(active)
     if ctx is None:
         return redirect(url_for("login"))
-    return render_template("admin_dashboard.html", **ctx)
+    return render_template("admin/admin_dashboard.html", **ctx)
 
 
 @admin_app.route("/")
@@ -470,7 +470,7 @@ def ai_review_detail(flag_id):
     if not flag:
         return redirect(url_for("ai_review"))
     return render_template(
-        "admin_ai_review.html",
+        "admin/admin_ai_review.html",
         admin=admin,
         flag=flag,
         active="ai_review",

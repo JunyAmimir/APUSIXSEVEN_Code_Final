@@ -306,7 +306,7 @@ def main_menu():
     vouchers = get_all_vouchers() 
     current_user_name = session.get("user_name", "User")
     
-    return render_template("main_menu.html", user_name=current_user_name,vouchers=vouchers)
+    return render_template("user/main_menu.html", user_name=current_user_name,vouchers=vouchers)
 
 def slugify(value):
     value = str(value or "").strip().lower()
@@ -375,7 +375,7 @@ def get_all_vouchers():
 @app.route("/ai-coach")
 @app.route("/ai_money_coach.html")
 def ai_money_coach():
-    return render_template("ai_money_coach.html")
+    return render_template("user/ai_money_coach.html")
 # ---------------------------
 # Notification API
 # ---------------------------
@@ -582,24 +582,24 @@ def voucher():
     if session.get("role") != "user":
         return redirect("/auth.html")
     vouchers = get_all_vouchers()
-    return render_template("voucher.html", vouchers=vouchers)
+    return render_template("user/voucher.html", vouchers=vouchers)
 
 @app.route("/voucher-detail/<voucher_id>")
 def voucher_detail(voucher_id):
 
-    return render_template("voucher_detail.html")
+    return render_template("user/voucher_detail.html")
 
 @app.route("/map")
 @app.route("/map.html")
 def map_page():
-    return render_template("map.html")
+    return render_template("user/map.html")
 
 @app.route("/budget")
 @app.route("/budget.html")
 def budget_page():
     if session.get("role") != "user":
         return redirect("/auth.html")
-    return render_template("budget.html")
+    return render_template("user/budget.html")
 
 # Budget CSV Database ApI
 def ensure_budget_settings_csv():
@@ -2000,8 +2000,8 @@ def profile():
     if session.get("role") != "user":
         return redirect("/auth.html")
 
-    profile_path = os.path.join(app.root_path, "profile.html")
-    template_path = os.path.join(app.root_path, "templates", "profile.html")
+    profile_path = os.path.join(app.root_path, "user", "profile.html")
+    template_path = os.path.join(app.root_path, "templates", "user", "profile.html")
     user_name = session.get("user_name", "User")
     user_email = session.get("user_email", "")
     created_at = ""
@@ -2024,7 +2024,7 @@ def profile():
 
     if os.path.exists(template_path):
         return render_template(
-            "profile.html",
+            "user/profile.html",
             user_name=user_name,
             user_email=user_email,
             member_since=member_since
@@ -2293,7 +2293,7 @@ def merchant_main_menu():
         "redemptions": total_redeemed
     }
 
-    return render_template('merchant_main_menu.html', 
+    return render_template('merchant/merchant_main_menu.html', 
                            merchant_name=merchant_name, 
                            total_redeemed=total_redeemed, 
                            active_promos=active_promos, 
@@ -2668,7 +2668,7 @@ def create_voucher():
 
         return redirect(url_for('merchant_main_menu'))
 
-    return render_template('create_voucher.html')
+    return render_template('merchant/create_voucher.html')
 
 def get_merchant_address(merchant_name):
     """Helper to find the address from merchants.csv"""
@@ -2892,7 +2892,7 @@ def merchant_profile():
                 return redirect("/merchant-profile?profile_error=1")
 
     return render_template(
-        "merchant_profile.html",
+        "merchant/merchant_profile.html",
         merchant_name=merchant_record.get("name", merchant_name),
         merchant_email=merchant_record.get("email", ""),
         merchant_address=merchant_record.get("address", "")

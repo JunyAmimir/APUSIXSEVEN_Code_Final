@@ -1,0 +1,4 @@
+id,type,icon,title,message,voucher_id,merchant_id,budget_percent,is_read,created_at
+seed_new_voucher_mcdonalds,merchant,🎟,New voucher nearby,McDonald's 15% OFF is available 1.2 km away.,mcdonalds,mcdonalds,,false,2026-05-22T12:00:00
+seed_popular_pastamania,merchant,🔥,Popular deal,Pastamania 20% OFF is getting more views today.,pastamania,pastamania,,false,2026-05-22T12:12:00
+seed_savings_reminder,budget,💰,Savings reminder,You have saved RM64 this month using vouchers.,,,,true,2026-05-22T13:00:00

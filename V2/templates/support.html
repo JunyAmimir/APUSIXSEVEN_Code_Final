@@ -238,6 +238,142 @@ textarea {
 .nav-map { -webkit-mask-image: url("/assets/icon-map.svg"); mask-image: url("/assets/icon-map.svg"); }
 .nav-budget { -webkit-mask-image: url("/assets/icon-budget.svg"); mask-image: url("/assets/icon-budget.svg"); }
 .nav-profile { -webkit-mask-image: url("/assets/icon-profile.svg"); mask-image: url("/assets/icon-profile.svg"); }
+{% if is_merchant %}
+.bottom-nav { grid-template-columns: repeat(3, 1fr); }
+{% endif %}
+
+
+/* =========================
+   Smooth Support Tickets Tab Animation
+   Matches the other phone tabs: soft page entrance, card lift, button feedback.
+========================= */
+.phone {
+    animation: phoneEnter .42s cubic-bezier(.16, 1, .3, 1) both;
+}
+.scroll {
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+}
+.top,
+.card,
+.ticket-link,
+.message,
+.bottom-nav {
+    opacity: 0;
+    animation: supportFadeUp .62s cubic-bezier(.16, 1, .3, 1) forwards;
+}
+.top { animation-delay: .04s; }
+.card:nth-of-type(1) { animation-delay: .10s; }
+.card:nth-of-type(2) { animation-delay: .18s; }
+.card:nth-of-type(3) { animation-delay: .26s; }
+.ticket-link:nth-child(1) { animation-delay: .24s; }
+.ticket-link:nth-child(2) { animation-delay: .30s; }
+.ticket-link:nth-child(3) { animation-delay: .36s; }
+.ticket-link:nth-child(4) { animation-delay: .42s; }
+.message:nth-child(1) { animation-delay: .30s; }
+.message:nth-child(2) { animation-delay: .36s; }
+.message:nth-child(3) { animation-delay: .42s; }
+.bottom-nav { animation-delay: .24s; }
+
+.back,
+.primary,
+.ticket-link,
+.nav-item,
+input,
+select,
+textarea,
+.card {
+    transition:
+        transform .22s cubic-bezier(.2, .85, .25, 1),
+        border-color .22s ease,
+        background .22s ease,
+        box-shadow .22s ease,
+        color .22s ease,
+        opacity .22s ease;
+}
+.back:hover,
+.back:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(255,116,38,.48);
+    background: rgba(255,116,38,.10);
+    box-shadow: 0 0 18px rgba(255,116,38,.14);
+    outline: none;
+}
+.back:active,
+.primary:active,
+.nav-item:active,
+.ticket-link:active {
+    transform: scale(.96);
+}
+.card:hover {
+    border-color: rgba(255,116,38,.26);
+    box-shadow: 0 12px 28px rgba(0,0,0,.24), 0 0 18px rgba(255,116,38,.08);
+}
+.ticket-link:hover,
+.ticket-link:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(255,116,38,.48);
+    background: rgba(255,116,38,.08);
+    box-shadow: 0 10px 24px rgba(0,0,0,.22), 0 0 18px rgba(255,116,38,.10);
+    outline: none;
+}
+.ticket-link.active {
+    box-shadow: inset 0 0 0 1px rgba(255,116,38,.14), 0 0 18px rgba(255,116,38,.10);
+}
+.primary:hover,
+.primary:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px rgba(255,101,21,.28), 0 0 18px rgba(255,116,38,.14);
+    outline: none;
+}
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: rgba(255,116,38,.72);
+    background: rgba(255,116,38,.075);
+    box-shadow: 0 0 0 3px rgba(255,116,38,.11);
+}
+.nav-item:hover,
+.nav-item:focus-visible {
+    transform: translateY(-2px);
+    background: rgba(255,116,38,.06);
+    color: var(--orange);
+    outline: none;
+}
+.nav-item.active {
+    box-shadow: inset 0 0 0 1px rgba(255,116,38,.10), 0 0 18px rgba(255,116,38,.08);
+}
+
+.support-exit {
+    animation: supportPageExit .18s ease forwards !important;
+}
+
+@keyframes phoneEnter {
+    from { opacity: 0; transform: translateY(16px) scale(.985); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes supportFadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes supportPageExit {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to { opacity: .35; transform: translateY(10px) scale(.99); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .phone,
+    .top,
+    .card,
+    .ticket-link,
+    .message,
+    .bottom-nav {
+        animation: none !important;
+        opacity: 1 !important;
+    }
+    * { transition: none !important; }
+}
+
 </style>
 <link rel="stylesheet" href="/assets/customer_phone_frame.css">
 </head>
@@ -245,9 +381,9 @@ textarea {
 <section class="phone">
     <div class="scroll">
         <header class="top">
-            <a class="back" href="/profile" aria-label="Back to profile">&lsaquo;</a>
+            <a class="back" href="{{ back_href|default('/profile') }}" aria-label="Back to profile">&lsaquo;</a>
             <div>
-                <h1>Support</h1>
+                <h1>{{ 'Merchant Support' if is_merchant else 'Support' }}</h1>
                 <p class="sub">Send issues and read admin replies.</p>
             </div>
         </header>
@@ -332,12 +468,38 @@ textarea {
     </div>
 
     <nav class="bottom-nav">
+        {% if is_merchant %}
+        <a class="nav-item" href="/merchant-main-menu"><span class="nav-icon nav-main"></span><em>Home</em></a>
+        <a class="nav-item" href="/create"><span class="nav-icon nav-voucher"></span><em>Create</em></a>
+        <a class="nav-item active" href="/merchant-profile"><span class="nav-icon nav-profile"></span><em>You</em></a>
+        {% else %}
         <a class="nav-item" href="/main-menu"><span class="nav-icon nav-main"></span><em>Main</em></a>
         <a class="nav-item" href="/voucher"><span class="nav-icon nav-voucher"></span><em>Voucher</em></a>
         <a class="nav-item" href="/map"><span class="nav-icon nav-map"></span><em>Map</em></a>
         <a class="nav-item" href="/budget"><span class="nav-icon nav-budget"></span><em>Budget</em></a>
         <a class="nav-item active" href="/profile"><span class="nav-icon nav-profile"></span><em>Profile</em></a>
+        {% endif %}
     </nav>
 </section>
+
+<script>
+(function () {
+    const phone = document.querySelector('.phone');
+    const links = document.querySelectorAll('a[href]:not([href^="#"]):not([target])');
+
+    links.forEach(link => {
+        link.addEventListener('click', function (event) {
+            const href = this.getAttribute('href') || '';
+            if (!href || href.startsWith('javascript:') || href === window.location.pathname + window.location.search) return;
+            event.preventDefault();
+            if (phone) phone.classList.add('support-exit');
+            setTimeout(() => {
+                window.location.href = href;
+            }, 150);
+        });
+    });
+})();
+</script>
+
 </body>
 </html>

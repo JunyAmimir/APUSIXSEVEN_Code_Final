@@ -544,3 +544,19 @@ document.addEventListener("keydown", function(event) {
 window.openVoucherModal = openVoucherModal;
 window.closeVoucherModal = closeVoucherModal;
 </script>
+
+<script>
+document.addEventListener("click", function(event) {
+    const btn = event.target.closest(".voucher-claim-btn");
+    if (!btn) return;
+    const sheet = btn.closest(".voucher-sheet-overlay, .voucher-sheet, [data-voucher-id]");
+    const voucherId = sheet && sheet.getAttribute("data-voucher-id") || btn.dataset.voucherId || "";
+    const titleEl = sheet && sheet.querySelector("h2, h3, .voucher-sheet-title h2");
+    const voucherName = btn.dataset.voucherName || (titleEl && titleEl.textContent) || "Voucher";
+    fetch("/api/activity/save-voucher", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ voucher_id: voucherId, voucher_name: voucherName, merchant_name: voucherName })
+    }).catch(() => {});
+});
+</script>

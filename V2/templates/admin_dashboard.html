@@ -414,7 +414,42 @@
                 </div>
                 <div class="card utility-card"><h2>Preview</h2><div class="preview"><strong id="announcementPreviewTitle">Announcement preview</strong><p id="announcementPreviewMessage">Published announcements can appear in the customer notification area.</p><small id="announcementPreviewMeta">All Users - Draft</small></div></div>
             </div>
-            <div class="card utility-card" style="margin-top:14px;"><h2>Recent Announcements</h2><div class="table-wrap"><table><thead><tr><th>Title</th><th>Audience</th><th>Status</th><th>Scheduled</th><th>Created</th><th>Actions</th></tr></thead><tbody>{% for item in announcements %}<tr><td>{{ item.title }}</td><td>{{ item.audience }}</td><td><span class="badge">{{ item.status }}</span></td><td>{{ item.scheduled_at or '-' }}</td><td>{{ item.created_at }}</td><td><a class="review-btn" href="/api/admin/announcements">View API</a></td></tr>{% endfor %}</tbody></table></div></div>
+            <div class="card utility-card" style="margin-top:14px;">
+                <h2>Recent Announcements</h2>
+                <div class="table-wrap">
+                    <table class="announcement-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Audience</th>
+                                <th>Status</th>
+                                <th>Scheduled</th>
+                                <th>Created</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in announcements %}
+                            <tr class="announcement-row" data-announcement-row="{{ item.id }}">
+                                <td>{{ item.title }}</td>
+                                <td>{{ item.audience }}</td>
+                                <td><span class="badge">{{ item.status }}</span></td>
+                                <td>{{ item.scheduled_at or '-' }}</td>
+                                <td>{{ item.created_at }}</td>
+                                <td style="text-align:right;">
+                                    <form method="post" action="/announcements/{{ item.id }}/delete" class="announcement-delete-form" data-announcement-delete-form>
+                                        <button class="btn danger announcement-erase-btn" type="submit">Erase</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% if not announcements %}
+                            <tr><td colspan="6" class="muted">No announcements yet.</td></tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             {% endif %}
 
             {% if active == 'settings' %}
@@ -521,5 +556,145 @@
         </section>
     </main>
 </div>
+
+<style>
+.announcement-delete-form {
+    margin: 0;
+    display: inline-flex;
+    justify-content: flex-end;
+}
+.announcement-erase-btn {
+    height: 32px;
+    padding: 0 13px !important;
+    border-radius: 999px !important;
+    font-size: 12px !important;
+    transition: transform .18s ease, opacity .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.announcement-erase-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(239, 68, 68, .22);
+}
+.announcement-erase-btn:active {
+    transform: scale(.94);
+}
+.announcement-row {
+    transition: opacity .28s ease, transform .28s ease, filter .28s ease;
+}
+.announcement-row.erasing {
+    opacity: .35;
+    transform: translateX(12px);
+    filter: blur(.4px);
+    pointer-events: none;
+}
+.announcement-row.erased {
+    opacity: 0;
+    transform: translateX(24px) scale(.985);
+}
+</style>
+
+<script>
+document.addEventListener("submit", async function(event) {
+    const form = event.target.closest("[data-announcement-delete-form]");
+    if (!form) return;
+
+    event.preventDefault();
+
+    const row = form.closest(".announcement-row");
+    const button = form.querySelector("button");
+    if (button) {
+        button.disabled = true;
+        button.textContent = "Erasing...";
+    }
+    if (row) row.classList.add("erasing");
+
+    try {
+        const response = await fetch(form.action, {
+            method: "POST",
+            headers: {"X-Requested-With": "XMLHttpRequest"}
+        });
+
+        if (!response.ok) throw new Error("Delete failed");
+
+        if (row) {
+            row.classList.remove("erasing");
+            row.classList.add("erased");
+        }
+
+        setTimeout(() => {
+            window.location.href = "/announcements";
+        }, 280);
+    } catch (error) {
+        form.submit();
+    }
+});
+</script>
+
+
+<script>
+(function () {
+    const isSupportPage = document.body && document.body.dataset && document.body.dataset.page === "support";
+    if (!isSupportPage) return;
+
+    const liveBadge = document.getElementById("liveChatWaitingBadge");
+    const liveList = document.getElementById("adminLiveSessionList");
+    const livePanel = document.getElementById("adminLivePanel");
+
+    function escapeAdminLive(value) {
+        return String(value || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function badgeClass(status) {
+        status = String(status || "").toLowerCase();
+        if (status === "waiting") return "red";
+        if (status === "active") return "green";
+        return "blue";
+    }
+
+    function renderLiveList(sessions) {
+        if (!liveList) return;
+        const selectedId = String((livePanel && livePanel.dataset.selectedSessionId) || new URLSearchParams(location.search).get("live_session_id") || "");
+        const groups = ["waiting", "active", "resolved", "ended"];
+        let html = "";
+
+        groups.forEach(status => {
+            html += `<h3 class="live-section-title">${status.charAt(0).toUpperCase() + status.slice(1)}</h3>`;
+            const group = (sessions || []).filter(item => String(item.status || "").toLowerCase() === status);
+            group.forEach(chat => {
+                const id = String(chat.id || "");
+                const active = selectedId === id ? "active" : "";
+                html += `
+                    <a class="ticket-card live-session-card ${active}" href="/support/live?live_session_id=${encodeURIComponent(id)}" data-live-session-id="${escapeAdminLive(id)}">
+                        <strong>${escapeAdminLive(chat.user_name || "Merchant")}</strong>
+                        <span class="badge ${badgeClass(chat.status)}">${escapeAdminLive(String(chat.status || "waiting").replace(/_/g, " "))}</span>
+                        <p class="muted">${escapeAdminLive(chat.last_message || chat.subject || "Live support request")}</p>
+                        <small>${escapeAdminLive(chat.last_message_at || chat.updated_at || "Just now")}</small>
+                    </a>`;
+            });
+        });
+
+        if (!(sessions || []).length) html = `<p class="muted">No live chats yet.</p>`;
+        liveList.innerHTML = html;
+    }
+
+    async function refreshAdminLiveSupport() {
+        try {
+            const response = await fetch("/api/admin/live-support/sessions", { cache: "no-store" });
+            const data = await response.json();
+            if (!response.ok || !data.success) return;
+            if (liveBadge) liveBadge.textContent = data.waiting_count || 0;
+            renderLiveList(data.sessions || []);
+        } catch (_) {}
+    }
+
+    refreshAdminLiveSupport();
+    setInterval(refreshAdminLiveSupport, 3000);
+})();
+</script>
+
 </body>
 </html>

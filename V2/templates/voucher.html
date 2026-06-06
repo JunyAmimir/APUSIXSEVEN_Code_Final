@@ -1517,13 +1517,21 @@ document.addEventListener("DOMContentLoaded", function () {
         const card = getVoucherCard(element) || element;
         const id = resolveVoucherId(element);
         const data = voucherData[id] || voucherData["mcdonalds"];
+        data.id = id;
 
         card.classList.add("voucher-pressed");
         fillModal(data);
 
         const redeemBtn = document.getElementById("modalRedeemBtn");
+        const saveBtn = document.getElementById("modalSaveBtn");
+        redeemBtn.dataset.voucherId = id;
         redeemBtn.dataset.voucherName = data.name;
+        redeemBtn.dataset.voucherTitle = data.discount;
         redeemBtn.dataset.voucherDiscount = data.discount;
+        saveBtn.dataset.voucherId = id;
+        saveBtn.dataset.voucherName = data.name;
+        saveBtn.dataset.voucherTitle = data.discount;
+        saveBtn.dataset.merchantName = data.name;
 
         setTimeout(function () {
             modal.setAttribute("aria-hidden", "false");
@@ -2018,7 +2026,13 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch("/api/activity/redeem-voucher", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ voucher_name: voucherName, redemption_code: voucherDiscount })
+            body: JSON.stringify({
+                voucher_id: this.dataset.voucherId || "",
+                voucher_name: voucherName,
+                voucher_title: this.dataset.voucherTitle || voucherDiscount,
+                merchant_name: voucherName,
+                redemption_code: voucherDiscount
+            })
         }).catch(() => {});
 
         closeVoucherDetails();
@@ -2034,7 +2048,12 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch("/api/activity/save-voucher", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ voucher_name: voucherName })
+            body: JSON.stringify({
+                voucher_id: this.dataset.voucherId || "",
+                voucher_name: voucherName,
+                voucher_title: this.dataset.voucherTitle || document.getElementById("modalVoucherDiscount").textContent || voucherName,
+                merchant_name: this.dataset.merchantName || voucherName
+            })
         }).catch(() => {});
     });
 })();

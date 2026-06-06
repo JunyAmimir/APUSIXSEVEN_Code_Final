@@ -884,6 +884,23 @@ if (data.containLogo) {
     brandWrap.classList.remove("contain");
     outletWrap.classList.remove("contain");
 }
+
+const saveBtn = document.querySelector(".save-btn");
+if (saveBtn) {
+    saveBtn.addEventListener("click", function () {
+        this.textContent = "Saved ✓";
+        fetch("/api/activity/save-voucher", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                voucher_id: id,
+                voucher_name: data.name,
+                voucher_title: data.discount + " " + data.subtitle,
+                merchant_name: data.name
+            })
+        }).catch(() => {});
+    });
+}
 </script>
 </body>
 </html>

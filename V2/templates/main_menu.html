@@ -6127,7 +6127,7 @@ body,
                 </div>
 
                 <div class="ai-quick-row">
-                    <button class="ai-chip" type="button" data-ai-prompt="Find the best discount near me">Best discount</button>
+                    <button class="ai-chip" type="button" data-ai-action="user-best-discount" data-ai-prompt="Find the best discount near me">Best discount</button>
                     <button class="ai-chip" type="button" data-ai-prompt="Suggest something under RM20">Under RM20</button>
                     <button class="ai-chip" type="button" data-ai-prompt="I want dessert deals">Dessert</button>
                     <button class="ai-chip" type="button" data-ai-prompt="I want drinks or smoothies">Drinks</button>
@@ -6891,7 +6891,11 @@ if (document.readyState === "loading") {
 
     window.fetchVouchrDealAIReply = fetchDealAIReply;
 
-    function createAIReply(prompt) {
+    function createAIReply(prompt, action) {
+        if (action === "user-best-discount") {
+            return "Best discount for you: The Good Burger gives the strongest value with 30% OFF the total bill. If you want a backup meal deal, Pastamania is also good with 20% OFF.";
+        }
+
         if (typeof window.getVouchrDealRecommendation === "function") {
             const recommendation = window.getVouchrDealRecommendation(prompt);
             if (recommendation && recommendation.text) {
@@ -6920,8 +6924,9 @@ if (document.readyState === "loading") {
         return "Based on your vouchers, I suggest McDonald's for something quick, Pastamania for a meal, or Boost if you want a drink.";
     }
 
-    async function askAI(promptFromChip) {
+    async function askAI(promptFromChip, actionFromChip) {
         const prompt = promptFromChip || (aiInput ? aiInput.value.trim() : "");
+        const action = actionFromChip || "";
 
         if (!prompt) {
             aiResponse.textContent = "Try asking something like: “What is the best deal near me?” or “What can I eat under RM20?”";
@@ -6929,11 +6934,19 @@ if (document.readyState === "loading") {
         }
 
         aiResponse.textContent = "Thinking...";
+        if (action === "user-best-discount") {
+            setTimeout(() => { aiResponse.textContent = createAIReply(prompt, action); }, 180);
+            if (aiInput) {
+                aiInput.value = "";
+            }
+            return;
+        }
+
         try {
             const data = await fetchDealAIReply(prompt);
-            aiResponse.textContent = data.reply || createAIReply(prompt);
+            aiResponse.textContent = data.reply || createAIReply(prompt, action);
         } catch (_) {
-            aiResponse.textContent = createAIReply(prompt);
+            aiResponse.textContent = createAIReply(prompt, action);
         }
 
         if (aiInput) {
@@ -7014,7 +7027,7 @@ if (document.readyState === "loading") {
 
     document.querySelectorAll("[data-ai-prompt]").forEach((button) => {
         button.addEventListener("click", () => {
-            askAI(button.dataset.aiPrompt);
+            askAI(button.dataset.aiPrompt, button.dataset.aiAction || "");
         });
     });
 
@@ -8877,10 +8890,14 @@ if (document.readyState === "loading") {
         const titleEl = card ? card.querySelector("h1, h2, h3, h4") : null;
         const discountEl = card ? card.querySelector(".card-pill, .orange, .sheet-offer, .tag") : null;
 
+        const name = safeText(button.dataset.voucherName || (card && card.getAttribute("data-voucher-name")) || (titleEl && titleEl.textContent), "Voucher");
+        const discount = safeText(button.dataset.voucherDiscount || (card && card.getAttribute("data-voucher-offer")) || (discountEl && discountEl.textContent), "Saved Voucher");
         return {
             id: safeText(id, "voucher"),
-            name: safeText(button.dataset.voucherName || (card && card.getAttribute("data-voucher-name")) || (titleEl && titleEl.textContent), "Voucher"),
-            discount: safeText(button.dataset.voucherDiscount || (card && card.getAttribute("data-voucher-offer")) || (discountEl && discountEl.textContent), "Saved Voucher"),
+            name: name,
+            merchantName: safeText((card && card.getAttribute("data-voucher-name")) || name, name),
+            title: safeText((card && card.getAttribute("data-voucher-title")) || discount, discount),
+            discount: discount,
             savedAt: new Date().toISOString()
         };
     }
@@ -8925,7 +8942,12 @@ if (document.readyState === "loading") {
         fetch("/api/activity/save-voucher", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ voucher_id: voucher.id, voucher_name: voucher.name })
+            body: JSON.stringify({
+                voucher_id: voucher.id,
+                voucher_name: voucher.name,
+                voucher_title: voucher.title || voucher.discount,
+                merchant_name: voucher.merchantName || voucher.name
+            })
         }).catch(() => {});
     }, true);
 

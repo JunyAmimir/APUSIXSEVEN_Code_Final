@@ -6,7 +6,8 @@
     <title>Create Voucher</title>
 <style>
 :root { 
-    --orange: #ff6b00;        
+    --orange: #ff6b00;
+    --nav-hover-orange: #ff8a2a;        
     --text: #ffffff; 
     --muted: #8a8d93;         
     --line: rgba(255, 255, 255, 0.08); 
@@ -257,7 +258,7 @@ select option {
     flex: 1; 
     /* Shrunk the gap between the icon and the text */
     gap: 2px; 
-    color: var(--muted); 
+    color: #ffffff; 
     text-decoration: none; 
     /* Slightly smaller font to fit the tighter space */
     font-size: 0.72rem; 
@@ -267,23 +268,34 @@ select option {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+
+.bottom-nav .nav-item span {
+    color: #ffffff;
+    font-weight: 700;
+}
 .nav-icon {
     /* Scaled the icons down slightly so they don't feel cramped in the thinner bar */
     width: 22px; 
     height: 22px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    filter: brightness(0.75);
+    filter: brightness(0) invert(1);
 }
 .nav-item:hover .nav-icon,
 .nav-item.active .nav-icon {
     transform: scale(1.15);
-    filter: brightness(1) drop-shadow(0 0 6px var(--orange));
+    filter: brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,0.45));
 }
 .nav-item:hover,
 .nav-item.active { 
-    color: var(--orange); 
-    background: rgba(255, 107, 0, 0.12); 
+    color: #ffffff; 
+    background: var(--nav-hover-orange); 
+    box-shadow: 0 0 18px rgba(255, 138, 42, 0.45);
     transform: translateY(-2px); 
+}
+
+.bottom-nav .nav-item:hover span,
+.bottom-nav .nav-item.active span {
+    color: #ffffff;
 }
 @keyframes naturalFadeSlideUp {
     0% {

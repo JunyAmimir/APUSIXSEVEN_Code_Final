@@ -77,6 +77,11 @@
     font-weight: 850;
 }
 
+.required-star {
+    margin-left: 3px;
+    color: #ff7426;
+}
+
 .merchant-search-wrap {
     position: relative;
     margin-bottom: 14px;
@@ -317,7 +322,10 @@
 .field-shell textarea {
     height: 70px;
     resize: none;
-    padding-top: 13px;
+    box-sizing: border-box;
+    padding: 24px 42px 10px 0;
+    text-align: center;
+    line-height: 20px;
 }
 
 .remaining-preview {
@@ -659,7 +667,7 @@
             <div></div>
         </div>
 
-        <label class="form-label" for="merchantSearchInput">Merchant</label>
+        <label class="form-label" for="merchantSearchInput">Merchant<span class="required-star" aria-hidden="true">*</span></label>
         <div class="merchant-search-wrap">
             <div class="merchant-input-shell">
                 <svg class="search-svg" viewBox="0 0 24 24">
@@ -667,7 +675,7 @@
                     <path d="M20 20l-3.8-3.8"></path>
                 </svg>
 
-                <input id="merchantSearchInput" type="text" placeholder="Search or type merchant name" autocomplete="off">
+                <input id="merchantSearchInput" type="text" placeholder="Search or type merchant name" autocomplete="off" required aria-required="true">
 
                 <button class="clear-merchant" id="clearMerchantBtn" type="button">×</button>
             </div>
@@ -677,10 +685,10 @@
 
         <p class="custom-merchant-note">If the merchant is not listed, just type the name and save it.</p>
 
-        <label class="form-label" for="expenseAmountInput">Amount</label>
+        <label class="form-label" for="expenseAmountInput">Amount<span class="required-star" aria-hidden="true">*</span></label>
         <div class="amount-shell">
             <div class="currency-prefix">RM</div>
-            <input id="expenseAmountInput" type="number" step="0.01" placeholder="18.50">
+            <input id="expenseAmountInput" type="number" step="0.01" placeholder="0.00" required aria-required="true">
         </div>
 
         <label class="form-label">Category</label>
@@ -692,16 +700,16 @@
             <button class="category-choice" type="button" data-category="desserts"><img class="add-expense-svg-icon" src="/assets/budget-icons/icon-desserts.svg" alt=""> Desserts</button>
         </div>
 
-        <label class="form-label" for="expenseDateInput">Date</label>
+        <label class="form-label" for="expenseDateInput">Date<span class="required-star" aria-hidden="true">*</span></label>
         <div class="field-shell">
             <div class="field-icon"><img class="add-expense-svg-icon" src="/assets/budget-icons/icon-receipt.svg" alt=""></div>
-            <input id="expenseDateInput" type="date">
+            <input id="expenseDateInput" type="date" required aria-required="true">
         </div>
 
-        <label class="form-label" for="expenseSavedInput">Voucher savings</label>
+        <label class="form-label" for="expenseSavedInput">Saved amount</label>
         <div class="field-shell">
             <div class="field-icon"><img class="add-expense-svg-icon" src="/assets/budget-icons/icon-saved.svg" alt=""></div>
-            <input id="expenseSavedInput" type="number" step="0.01" placeholder="Saved amount, optional">
+            <input id="expenseSavedInput" type="number" step="0.01" placeholder="Saved amount">
         </div>
 
         <label class="form-label" for="expenseNoteInput">Notes</label>
@@ -912,6 +920,12 @@
             return;
         }
 
+        if (!dateInput.value) {
+            alert("Please select a date.");
+            dateInput.focus();
+            return;
+        }
+
         const response = await fetch("/api/budget/expense", {
             method: "POST",
             headers: {
@@ -923,7 +937,7 @@
                 saved,
                 category: categoryInput ? categoryInput.value : selectedCategory,
                 voucher_id: selectedVoucherId,
-                date: dateInput.value || todayString()
+                date: dateInput.value
             })
         });
 

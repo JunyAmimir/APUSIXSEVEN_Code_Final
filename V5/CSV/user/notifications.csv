@@ -1,4 +1,0 @@
-id,type,icon,title,message,voucher_id,merchant_id,budget_percent,is_read,created_at
-budget_75_2026-06,warning,⚠️,75% budget used,You have used 75% of your monthly budget. RM1623.00 / RM2000.00 spent. Spend carefully.,,,81,false,2026-06-07T13:00:44
-budget_50_2026-06,budget,💰,50% budget used,You have used 50% of your monthly budget. RM1623.00 / RM2000.00 spent.,,,81,false,2026-06-07T13:00:44
-budget_25_2026-06,budget,💰,25% budget used,You have used 25% of your monthly budget. RM1623.00 / RM2000.00 spent.,,,81,false,2026-06-07T13:00:44

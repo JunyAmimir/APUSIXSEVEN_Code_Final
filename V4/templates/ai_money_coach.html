@@ -1,0 +1,2349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vouchr - AI Money Coach</title>
+
+<style>
+:root {
+    --orange: #ff7426;
+    --bg: #25282f;
+    --phone: #060a0f;
+    --surface: rgba(255,255,255,.055);
+    --line: rgba(255,255,255,.12);
+    --text: #f7f8fb;
+    --muted: #a3a9ba;
+    --green: #62d26f;
+    --red: #ff5b5b;
+    --blue: #5b8cff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text);
+}
+
+.stage {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 14px;
+}
+
+.phone {
+    width: 330px;
+    height: 708px;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 82% 8%, rgba(255,116,38,.18), transparent 28%),
+        radial-gradient(circle at 14% 42%, rgba(255,116,38,.08), transparent 30%),
+        linear-gradient(180deg, #081018 0%, #04070b 100%);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 24px 50px rgba(0,0,0,.35);
+}
+
+.chat-scroll {
+    height: 100%;
+    overflow-y: auto;
+    padding: 22px 14px 92px;
+    scrollbar-width: none;
+}
+
+.chat-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.coach-head {
+    display: grid;
+    grid-template-columns: 40px 1fr 38px;
+    gap: 11px;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.back-btn,
+.refresh-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 15px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.04);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    text-decoration: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.coach-title h1 {
+    margin: 0;
+    font-size: 25px;
+    line-height: 1.05;
+    font-weight: 950;
+    letter-spacing: -.6px;
+}
+
+.coach-title p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.bot-hero {
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 90% 10%, rgba(255,116,38,.16), transparent 30%),
+        rgba(255,255,255,.045);
+    padding: 14px;
+    margin-bottom: 13px;
+    display: grid;
+    grid-template-columns: 76px 1fr;
+    gap: 12px;
+    align-items: center;
+}
+
+.coach-bot {
+    width: 72px;
+    height: 70px;
+    position: relative;
+    filter: drop-shadow(0 12px 20px rgba(255,116,38,.20));
+    animation: botFloat 2.8s ease-in-out infinite;
+}
+
+.coach-bot .body {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 13px;
+    bottom: 7px;
+    border-radius: 20px;
+    background:
+        radial-gradient(circle at 34% 18%, rgba(255,255,255,.5), transparent 20%),
+        linear-gradient(145deg, #f4f7ff 0%, #c8d1dd 45%, #6f7a89 100%);
+    border: 2px solid rgba(255,116,38,.75);
+}
+
+.coach-bot .screen {
+    position: absolute;
+    left: 9px;
+    right: 9px;
+    top: 13px;
+    height: 28px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #101c2a, #06101a);
+    border: 1px solid rgba(255,255,255,.16);
+}
+
+.coach-bot .eye {
+    position: absolute;
+    top: 9px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #ffbf3f;
+    box-shadow: 0 0 8px rgba(255,191,63,.75);
+}
+
+.coach-bot .eye.left { left: 10px; }
+.coach-bot .eye.right { right: 10px; }
+
+.coach-bot .mouth {
+    position: absolute;
+    left: 22px;
+    top: 18px;
+    width: 12px;
+    height: 6px;
+    border-bottom: 2px solid #ffbf3f;
+    border-radius: 0 0 10px 10px;
+}
+
+.coach-bot .ear {
+    position: absolute;
+    top: 26px;
+    width: 8px;
+    height: 21px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #ff9b46, #ff4d9a);
+}
+
+.coach-bot .ear.left { left: 0; }
+.coach-bot .ear.right { right: 0; }
+
+.coach-bot .crown {
+    position: absolute;
+    left: 26px;
+    top: 3px;
+    width: 26px;
+    height: 16px;
+    background: #ffbf3f;
+    clip-path: polygon(0 100%, 10% 20%, 32% 70%, 50% 0, 68% 70%, 90% 20%, 100% 100%);
+}
+
+.coach-bot.mood-warning .eye {
+    border-radius: 0;
+    transform: rotate(45deg);
+    background: #ff7426;
+}
+
+.coach-bot.mood-panic .eye {
+    background: #ff5b5b;
+}
+
+.coach-bot.mood-thinking .mouth {
+    width: 9px;
+    border-radius: 999px;
+    border-bottom: 0;
+    height: 3px;
+    background: #ffbf3f;
+    top: 20px;
+}
+
+.bot-text strong {
+    display: block;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.bot-text p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12.5px;
+    line-height: 1.35;
+}
+
+.health-card {
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 13px;
+    background: rgba(255,255,255,.045);
+    margin-bottom: 13px;
+}
+
+.health-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.score-ring {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: conic-gradient(var(--orange) var(--score-angle, 78%), rgba(255,255,255,.08) 0);
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+}
+
+.score-ring-inner {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: #071019;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    font-weight: 950;
+    font-size: 18px;
+}
+
+.score-ring-inner small {
+    display: block;
+    font-size: 9px;
+    color: var(--muted);
+    margin-top: -6px;
+}
+
+.health-copy h2 {
+    margin: 0 0 5px;
+    font-size: 17px;
+}
+
+.health-copy p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12.5px;
+    line-height: 1.35;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 9px;
+    margin-top: 12px;
+}
+
+.stat {
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 16px;
+    background: rgba(255,255,255,.035);
+    padding: 9px;
+}
+
+.stat small {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    margin-bottom: 5px;
+}
+
+.stat strong {
+    font-size: 13px;
+}
+
+.chat {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 13px;
+}
+
+.message {
+    max-width: 86%;
+    border-radius: 18px;
+    padding: 11px 12px;
+    font-size: 12.8px;
+    line-height: 1.38;
+    animation: popIn .22s ease both;
+}
+
+.message.bot {
+    align-self: flex-start;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.10);
+    color: #dce1ee;
+}
+
+.message.user {
+    align-self: flex-end;
+    background: linear-gradient(145deg, #ff8a24, #ff6515);
+    color: #fff;
+    font-weight: 750;
+}
+
+.quick-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 10px;
+}
+
+.quick-row::-webkit-scrollbar {
+    display: none;
+}
+
+.quick-btn {
+    flex: 0 0 auto;
+    border: 1px solid rgba(255,116,38,.45);
+    background: rgba(255,116,38,.08);
+    color: var(--orange);
+    border-radius: 999px;
+    padding: 9px 12px;
+    font-size: 11px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.input-bar {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 76px;
+    display: grid;
+    grid-template-columns: 1fr 44px;
+    gap: 9px;
+}
+
+.input-bar input {
+    height: 44px;
+    border-radius: 17px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.055);
+    outline: 0;
+    color: #fff;
+    padding: 0 14px;
+    font-size: 12.5px;
+}
+
+.input-bar button {
+    border: 0;
+    border-radius: 16px;
+    background: linear-gradient(145deg, #ff8a24, #ff6515);
+    color: #fff;
+    font-size: 20px;
+    font-weight: 950;
+    cursor: pointer;
+}
+
+.bottom-nav {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 68px;
+    padding: 4px;
+    background: rgba(5, 8, 13, .96);
+    border-top: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    backdrop-filter: blur(10px);
+}
+
+.nav-item {
+    color: #8f96a8;
+    text-decoration: none;
+    display: grid;
+    place-items: center;
+    gap: 3px;
+    padding: 8px 0 7px;
+    font-size: 10px;
+    font-weight: 800;
+    border-radius: 14px;
+}
+
+.nav-item.active {
+    color: var(--orange);
+    background: rgba(255,116,38,.075);
+}
+
+.nav-icon {
+    width: 23px;
+    height: 23px;
+    display: block;
+    background: currentColor;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+}
+
+.nav-main { -webkit-mask-image: url("/assets/icon-main-menu.svg"); mask-image: url("/assets/icon-main-menu.svg"); }
+.nav-voucher { -webkit-mask-image: url("/assets/icon-voucher.svg"); mask-image: url("/assets/icon-voucher.svg"); }
+.nav-map { -webkit-mask-image: url("/assets/icon-map.svg"); mask-image: url("/assets/icon-map.svg"); }
+.nav-budget { -webkit-mask-image: url("/assets/icon-budget.svg"); mask-image: url("/assets/icon-budget.svg"); }
+.nav-profile { -webkit-mask-image: url("/assets/icon-profile.svg"); mask-image: url("/assets/icon-profile.svg"); }
+
+@keyframes botFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+@keyframes popIn {
+    from { opacity: 0; transform: translateY(8px) scale(.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* =========================
+   AI Coach Chat UI Fix
+   Prevents quick buttons/input from overlapping.
+========================= */
+
+.phone {
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.chat-scroll {
+    height: calc(100% - 142px) !important;
+    padding: 22px 14px 18px !important;
+    overflow-y: auto !important;
+    padding-bottom: 24px !important;
+}
+
+.chat {
+    margin-bottom: 12px !important;
+    padding-bottom: 0 !important;
+}
+
+.quick-row {
+    position: absolute !important;
+    left: 14px !important;
+    right: 14px !important;
+    bottom: 124px !important;
+    z-index: 50 !important;
+    display: flex !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    padding: 0 0 8px !important;
+    margin: 0 !important;
+    background: linear-gradient(180deg, rgba(5,8,13,0), rgba(5,8,13,.92) 30%, rgba(5,8,13,.98) 100%) !important;
+    scrollbar-width: none !important;
+}
+
+.quick-row::-webkit-scrollbar {
+    display: none !important;
+}
+
+.quick-btn {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+    min-width: max-content !important;
+    height: 34px !important;
+    padding: 0 14px !important;
+    border-radius: 999px !important;
+    font-size: 11px !important;
+}
+
+.input-bar {
+    position: absolute !important;
+    left: 14px !important;
+    right: 14px !important;
+    bottom: 76px !important;
+    z-index: 60 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 48px !important;
+    gap: 9px !important;
+    padding: 0 !important;
+}
+
+.input-bar input {
+    min-width: 0 !important;
+    height: 44px !important;
+    border-radius: 17px !important;
+    padding: 0 14px !important;
+}
+
+.input-bar button {
+    width: 48px !important;
+    height: 44px !important;
+    border-radius: 17px !important;
+}
+
+.bottom-nav {
+    z-index: 70 !important;
+}
+
+/* Make user/bot bubbles fit the small phone width better */
+.message {
+    max-width: 84% !important;
+    word-break: break-word !important;
+}
+
+.message.user {
+    max-width: 76% !important;
+}
+
+/* =========================
+   Quick Buttons Hard Reset Fix
+   Tap sends. Drag slides.
+========================= */
+
+.quick-row {
+    pointer-events: auto !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: none !important;
+    cursor: grab !important;
+    z-index: 90 !important;
+    bottom: 126px !important;
+    padding: 0 8px 10px 0 !important;
+    scroll-behavior: auto !important;
+    overscroll-behavior-x: contain !important;
+}
+
+.quick-row.dragging {
+    cursor: grabbing !important;
+}
+
+.quick-row::-webkit-scrollbar {
+    display: none !important;
+}
+
+.quick-btn {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    position: relative !important;
+    z-index: 100 !important;
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    touch-action: none !important;
+}
+
+.quick-btn.quick-pressed {
+    transform: scale(.96);
+}
+
+.input-bar {
+    z-index: 60 !important;
+    bottom: 76px !important;
+}
+
+.input-bar::before,
+.input-bar::after,
+.quick-row::before,
+.quick-row::after {
+    pointer-events: none !important;
+}
+
+/* =========================
+   Quick Row Right Gap Fix
+========================= */
+
+.quick-row {
+    padding-right: 8px !important;
+    gap: 7px !important;
+}
+
+.quick-btn {
+    margin-right: 0 !important;
+}
+
+/* =========================
+   Budget Usage Sync Fix
+========================= */
+.score-ring-inner {
+    font-size: 17px !important;
+    line-height: 1.05 !important;
+}
+.score-ring-inner small {
+    font-size: 9px !important;
+    margin-top: -3px !important;
+}
+
+/* =========================
+   AI Bot Extra Animation + Direct Sync Visual Fix
+========================= */
+
+.coach-bot,
+.ai-money-bot,
+#coachBot {
+    animation:
+        coachBotFloat 2.8s ease-in-out infinite,
+        coachBotGlow 1.9s ease-in-out infinite !important;
+    transform-origin: center bottom !important;
+}
+
+.coach-bot .body,
+#coachBot .body {
+    animation: coachBotWiggle 2.2s ease-in-out infinite !important;
+}
+
+.coach-bot .eye,
+#coachBot .eye {
+    animation: coachEyePulse 1.6s ease-in-out infinite !important;
+}
+
+@keyframes coachBotFloat {
+    0%, 100% { transform: translateY(0) rotate(-1deg); }
+    50% { transform: translateY(-5px) rotate(1deg); }
+}
+
+@keyframes coachBotGlow {
+    0%, 100% { filter: drop-shadow(0 8px 14px rgba(255,116,38,.20)); }
+    50% { filter: drop-shadow(0 10px 22px rgba(255,116,38,.42)); }
+}
+
+@keyframes coachBotWiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-2deg); }
+    75% { transform: rotate(2deg); }
+}
+
+@keyframes coachEyePulse {
+    0%, 100% { opacity: .75; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.12); }
+}
+
+.score-ring,
+#scoreRing {
+    transition: background .35s ease;
+}
+
+.score-ring-inner,
+#healthScore {
+    font-size: 17px !important;
+}
+
+/* =========================
+   FIXED AI Coach Ring - 0% "used" now fits perfectly
+========================= */
+
+.score-ring,
+#scoreRing {
+    width: 72px !important;
+    height: 72px !important;
+    display: grid !important;
+    place-items: center !important;
+    position: relative !important;
+}
+
+.score-ring-inner {
+    width: 58px !important;
+    height: 58px !important;
+    border-radius: 50% !important;
+    background: #071019 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    padding: 2px 0 !important;
+    box-sizing: border-box !important;
+    line-height: 1 !important;
+}
+
+#healthScore {
+    display: block !important;
+    font-size: 16px !important;
+    font-weight: 950 !important;
+    line-height: 1.05 !important;
+    letter-spacing: -1px !important;
+    margin-bottom: 1px !important;
+}
+
+.score-ring-inner small {
+    display: block !important;
+    font-size: 8.5px !important;
+    color: var(--muted) !important;
+    line-height: 1 !important;
+    margin-top: 0 !important;
+}
+
+/* Remove any previous transforms that caused overflow */
+#healthScore,
+.score-ring-inner small {
+    transform: none !important;
+}
+.quick-row {
+    width: calc(100% - 28px) !important;
+    max-width: calc(100% - 28px) !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-x: contain !important;
+    touch-action: pan-x !important;
+    scroll-behavior: auto !important;
+    cursor: grab !important;
+    padding: 0 8px 10px 0 !important;
+    scroll-padding-inline: 8px !important;
+    scrollbar-width: none !important;
+}
+
+.quick-row.dragging {
+    cursor: grabbing !important;
+}
+
+.quick-btn {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+
+/* Final AI Money Coach bottom control spacing.
+   Keeps the chip row and input bar above the fixed bottom navigation. */
+:root {
+    --coach-bottom-nav-height: 68px;
+    --coach-control-gap: 12px;
+    --coach-input-height: 44px;
+    --coach-chip-height: 44px;
+}
+
+.chat-scroll {
+    height: 100% !important;
+    padding: 22px 14px 178px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+.chat {
+    margin-bottom: 0 !important;
+}
+
+.quick-row {
+    position: absolute !important;
+    left: 14px !important;
+    right: 14px !important;
+    bottom: calc(var(--coach-bottom-nav-height) + var(--coach-input-height) + 26px) !important;
+    width: auto !important;
+    max-width: none !important;
+    min-height: var(--coach-chip-height) !important;
+    padding: 4px 10px 8px 0 !important;
+    margin: 0 !important;
+    align-items: center !important;
+    z-index: 80 !important;
+    background: linear-gradient(180deg, rgba(5,8,13,0), rgba(5,8,13,.94) 42%, rgba(5,8,13,.98) 100%) !important;
+}
+
+.input-bar {
+    position: absolute !important;
+    left: 14px !important;
+    right: 14px !important;
+    bottom: calc(var(--coach-bottom-nav-height) + var(--coach-control-gap)) !important;
+    z-index: 85 !important;
+}
+
+.input-bar input,
+.input-bar button {
+    height: var(--coach-input-height) !important;
+}
+
+.bottom-nav {
+    z-index: 70 !important;
+}
+</style>
+<link rel="stylesheet" href="/assets/customer_phone_frame.css">
+<style>
+/* Reference-style AI Money Coach layout.
+   This must load after the shared phone-frame CSS so the coach screen keeps its own spacing. */
+.phone > .chat-scroll {
+    height: 100% !important;
+    padding: 58px 18px calc(var(--bottom-nav-height, 78px) + 24px) !important;
+    background:
+        radial-gradient(circle at 84% 8%, rgba(255,116,38,.18), transparent 28%),
+        radial-gradient(circle at 10% 42%, rgba(255,116,38,.075), transparent 30%),
+        linear-gradient(180deg, #081018 0%, #04070b 100%) !important;
+    border-radius: var(--vouchr-screen-radius) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+.coach-head {
+    grid-template-columns: 48px minmax(0, 1fr) 48px !important;
+    gap: 14px !important;
+    align-items: center !important;
+    margin: 0 0 20px !important;
+}
+
+.back-btn,
+.refresh-btn {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 18px !important;
+    background: rgba(255,255,255,.035) !important;
+    border-color: rgba(255,255,255,.11) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04) !important;
+}
+
+.coach-title h1 {
+    font-size: clamp(25px, 7vw, 30px) !important;
+    line-height: 1.02 !important;
+    letter-spacing: -.7px !important;
+}
+
+.coach-title p {
+    margin-top: 5px !important;
+    font-size: 14px !important;
+    color: #c0c6d4 !important;
+}
+
+.bot-hero {
+    min-height: 122px !important;
+    grid-template-columns: 104px minmax(0, 1fr) !important;
+    gap: 14px !important;
+    padding: 18px 20px !important;
+    margin-bottom: 18px !important;
+    border-radius: 24px !important;
+    border-color: rgba(255,116,38,.36) !important;
+    background:
+        radial-gradient(circle at 88% 12%, rgba(255,116,38,.31), transparent 36%),
+        linear-gradient(135deg, rgba(255,116,38,.08), rgba(255,255,255,.035)) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.05),
+        0 18px 36px rgba(0,0,0,.20) !important;
+}
+
+.bot-hero .coach-bot {
+    width: 88px !important;
+    height: 82px !important;
+}
+
+.bot-hero .bot-text strong {
+    color: var(--orange) !important;
+    font-size: 22px !important;
+    line-height: 1.1 !important;
+    margin-bottom: 8px !important;
+}
+
+.bot-hero .bot-text p {
+    color: #f1f4fb !important;
+    font-size: 15px !important;
+    line-height: 1.35 !important;
+}
+
+.bot-hero .bot-text::after {
+    content: "Keep it up!";
+    display: block;
+    margin-top: 12px;
+    color: var(--orange);
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.health-card {
+    padding: 16px !important;
+    margin-bottom: 18px !important;
+    border-radius: 24px !important;
+    background:
+        radial-gradient(circle at 92% 12%, rgba(255,255,255,.06), transparent 32%),
+        rgba(255,255,255,.035) !important;
+    border-color: rgba(255,255,255,.13) !important;
+}
+
+.health-top {
+    display: grid !important;
+    grid-template-columns: 116px minmax(0, 1fr) !important;
+    gap: 16px !important;
+    align-items: center !important;
+}
+
+.score-ring {
+    width: 104px !important;
+    height: 104px !important;
+    background: conic-gradient(var(--orange) var(--score-angle, 0%), rgba(255,255,255,.08) 0) !important;
+    box-shadow: 0 0 28px rgba(255,116,38,.15) !important;
+}
+
+.score-ring-inner {
+    width: 74px !important;
+    height: 74px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #071019 !important;
+}
+
+#healthScore {
+    font-size: 28px !important;
+    letter-spacing: -.8px !important;
+}
+
+.score-ring-inner small {
+    margin-top: 2px !important;
+    font-size: 12px !important;
+    color: #c6ccda !important;
+}
+
+.health-copy h2 {
+    margin-bottom: 8px !important;
+    font-size: 24px !important;
+    line-height: 1.08 !important;
+}
+
+.health-copy p {
+    color: #d7dcea !important;
+    font-size: 16px !important;
+    line-height: 1.38 !important;
+}
+
+.stats-grid {
+    gap: 10px !important;
+    margin-top: 18px !important;
+}
+
+.stat {
+    min-height: 74px !important;
+    padding: 12px 12px !important;
+    border-radius: 16px !important;
+    background: rgba(255,255,255,.035) !important;
+}
+
+.stat small {
+    margin-bottom: 10px !important;
+    color: #d1d6e4 !important;
+    font-size: 13px !important;
+}
+
+.stat strong {
+    font-size: 19px !important;
+    line-height: 1.05 !important;
+}
+
+.stat:nth-child(3) strong {
+    color: #45dc75 !important;
+}
+
+.chat {
+    gap: 16px !important;
+    margin: 0 !important;
+}
+
+.message {
+    position: relative !important;
+    max-width: 76% !important;
+    padding: 14px 16px !important;
+    border-radius: 18px !important;
+    font-size: 16px !important;
+    line-height: 1.42 !important;
+}
+
+.message.bot {
+    align-self: flex-start !important;
+    margin-left: 62px !important;
+    color: #f3f5fb !important;
+    background:
+        linear-gradient(145deg, rgba(255,255,255,.08), rgba(255,255,255,.035)) !important;
+    border: 1px solid rgba(255,255,255,.11) !important;
+    box-shadow: 0 12px 24px rgba(0,0,0,.18) !important;
+}
+
+.message.bot::before {
+    content: "AI";
+    position: absolute;
+    left: -58px;
+    top: 4px;
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 16px;
+    border: 1px solid rgba(255,116,38,.28);
+    background: radial-gradient(circle at 50% 50%, rgba(255,116,38,.15), rgba(255,255,255,.04));
+    box-shadow: 0 0 18px rgba(255,116,38,.15);
+    color: var(--orange);
+    font-size: 12px;
+    font-weight: 950;
+}
+
+.message.user {
+    align-self: flex-end !important;
+    max-width: 78% !important;
+    border-radius: 18px !important;
+    background: linear-gradient(145deg, #ff8a24, #ff5712) !important;
+    color: #fff !important;
+    font-weight: 850 !important;
+    box-shadow: 0 12px 26px rgba(255,116,38,.22) !important;
+}
+
+.phone > .chat-scroll > .quick-row {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 44px !important;
+    gap: 8px !important;
+    padding: 2px 12px 8px 0 !important;
+    margin: 18px 0 12px !important;
+    z-index: 5 !important;
+    align-items: center !important;
+    background: transparent !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    touch-action: pan-x !important;
+}
+
+.quick-btn {
+    height: 38px !important;
+    padding: 0 14px !important;
+    border-radius: 999px !important;
+    border-color: rgba(255,116,38,.70) !important;
+    background: rgba(255,116,38,.08) !important;
+    color: var(--orange) !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    transition: transform .18s ease, background .18s ease, box-shadow .18s ease !important;
+}
+
+.quick-btn:hover,
+.quick-btn:focus-visible {
+    background: rgba(255,116,38,.16) !important;
+    box-shadow: 0 0 18px rgba(255,116,38,.15) !important;
+}
+
+.phone > .chat-scroll > .input-bar {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100% !important;
+    height: 58px !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 50px !important;
+    gap: 10px !important;
+    padding: 0 !important;
+    margin: 0 0 8px !important;
+    z-index: 5 !important;
+}
+
+.phone > .chat-scroll > .input-bar input {
+    height: 58px !important;
+    border-radius: 18px !important;
+    border-color: rgba(255,116,38,.55) !important;
+    background:
+        radial-gradient(circle at 90% 15%, rgba(255,116,38,.08), transparent 30%),
+        rgba(255,255,255,.045) !important;
+    color: #fff !important;
+    font-size: 16px !important;
+    padding: 0 18px !important;
+}
+
+.phone > .chat-scroll > .input-bar input::placeholder {
+    color: #aeb4c5 !important;
+}
+
+.phone > .chat-scroll > .input-bar button {
+    width: 50px !important;
+    height: 50px !important;
+    align-self: center !important;
+    border-radius: 16px !important;
+    background: linear-gradient(145deg, #ff8a24, #ff5b12) !important;
+    box-shadow: 0 12px 26px rgba(255,116,38,.24) !important;
+}
+
+.phone .bottom-nav {
+    z-index: 70000 !important;
+}
+
+@media (max-width: 420px) {
+    .phone > .chat-scroll {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+    }
+
+    .bot-hero {
+        grid-template-columns: 86px minmax(0, 1fr) !important;
+        padding: 16px !important;
+    }
+
+    .bot-hero .coach-bot {
+        width: 78px !important;
+        height: 76px !important;
+    }
+
+    .health-top {
+        grid-template-columns: 94px minmax(0, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    .score-ring {
+        width: 88px !important;
+        height: 88px !important;
+    }
+
+    .score-ring-inner {
+        width: 62px !important;
+        height: 62px !important;
+    }
+
+    #healthScore {
+        font-size: 23px !important;
+    }
+
+    .health-copy h2 {
+        font-size: 21px !important;
+    }
+
+    .health-copy p,
+    .message {
+        font-size: 14px !important;
+    }
+}
+
+/* Final compact coach pass.
+   Keeps the reference layout readable inside the current phone frame. */
+.phone > .chat-scroll {
+    padding: 60px 18px calc(var(--bottom-nav-height, 78px) + 26px) !important;
+}
+
+.coach-head {
+    grid-template-columns: 44px minmax(0, 1fr) 44px !important;
+    gap: 10px !important;
+    margin-bottom: 14px !important;
+}
+
+.back-btn,
+.refresh-btn {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 17px !important;
+}
+
+.coach-title h1 {
+    font-size: clamp(24px, 6vw, 30px) !important;
+    line-height: 1.02 !important;
+}
+
+.bot-hero {
+    min-height: 104px !important;
+    grid-template-columns: 82px minmax(0, 1fr) !important;
+    gap: 12px !important;
+    padding: 14px 16px !important;
+    margin-bottom: 14px !important;
+}
+
+.bot-hero .coach-bot {
+    width: 74px !important;
+    height: 70px !important;
+}
+
+.bot-hero .bot-text strong {
+    font-size: 20px !important;
+    margin-bottom: 7px !important;
+}
+
+.bot-hero .bot-text p {
+    font-size: 14px !important;
+    line-height: 1.3 !important;
+}
+
+.bot-hero .bot-text::after {
+    margin-top: 8px !important;
+    font-size: 13px !important;
+}
+
+.bot-hero .coach-bot.mood-thinking + .bot-text::after {
+    content: "Checking now.";
+}
+
+.bot-hero .coach-bot.mood-warning + .bot-text::after {
+    content: "Keep it in check.";
+}
+
+.bot-hero .coach-bot.mood-panic + .bot-text::after {
+    content: "Take action now.";
+}
+
+.bot-hero.mood-happy,
+.bot-hero:has(.coach-bot.mood-happy) {
+    border-color: rgba(255,137,38,.45) !important;
+    background:
+        radial-gradient(circle at 86% 8%, rgba(255,137,38,.34), transparent 34%),
+        radial-gradient(circle at 22% 78%, rgba(255,191,63,.12), transparent 34%),
+        linear-gradient(135deg, rgba(255,116,38,.14), rgba(255,255,255,.04)) !important;
+}
+
+.bot-hero.mood-happy .bot-text strong,
+.bot-hero.mood-happy .bot-text::after,
+.bot-hero:has(.coach-bot.mood-happy) .bot-text strong,
+.bot-hero:has(.coach-bot.mood-happy) .bot-text::after {
+    color: #4ade80 !important;
+}
+
+.bot-hero.mood-thinking,
+.bot-hero:has(.coach-bot.mood-thinking) {
+    border-color: rgba(255,184,84,.30) !important;
+    background:
+        radial-gradient(circle at 86% 8%, rgba(255,184,84,.18), transparent 34%),
+        linear-gradient(135deg, rgba(255,255,255,.055), rgba(255,116,38,.055)) !important;
+}
+
+.bot-hero.mood-thinking .bot-text strong,
+.bot-hero.mood-thinking .bot-text::after,
+.bot-hero:has(.coach-bot.mood-thinking) .bot-text strong,
+.bot-hero:has(.coach-bot.mood-thinking) .bot-text::after {
+    color: #ff9f45 !important;
+}
+
+.bot-hero.mood-warning,
+.bot-hero:has(.coach-bot.mood-warning) {
+    border-color: rgba(255,116,38,.42) !important;
+    background:
+        radial-gradient(circle at 86% 8%, rgba(255,116,38,.26), transparent 34%),
+        radial-gradient(circle at 20% 80%, rgba(255,80,55,.09), transparent 34%),
+        linear-gradient(135deg, rgba(255,116,38,.09), rgba(255,255,255,.035)) !important;
+}
+
+.bot-hero.mood-warning .bot-text strong,
+.bot-hero.mood-warning .bot-text::after,
+.bot-hero:has(.coach-bot.mood-warning) .bot-text strong,
+.bot-hero:has(.coach-bot.mood-warning) .bot-text::after {
+    color: #ff7a1a !important;
+}
+
+.bot-hero.mood-panic,
+.bot-hero:has(.coach-bot.mood-panic) {
+    border-color: rgba(255,91,91,.38) !important;
+    background:
+        radial-gradient(circle at 86% 8%, rgba(255,91,91,.24), transparent 34%),
+        linear-gradient(135deg, rgba(255,91,91,.10), rgba(255,116,38,.04)) !important;
+}
+
+.bot-hero.mood-panic .bot-text strong,
+.bot-hero.mood-panic .bot-text::after,
+.bot-hero:has(.coach-bot.mood-panic) .bot-text strong,
+.bot-hero:has(.coach-bot.mood-panic) .bot-text::after {
+    color: #ff5b5b !important;
+}
+
+.health-card {
+    padding: 14px !important;
+    margin-bottom: 14px !important;
+}
+
+.health-top {
+    grid-template-columns: 88px minmax(0, 1fr) !important;
+    gap: 14px !important;
+}
+
+.score-ring {
+    width: 82px !important;
+    height: 82px !important;
+}
+
+.score-ring-inner {
+    width: 58px !important;
+    height: 58px !important;
+}
+
+#healthScore {
+    font-size: 24px !important;
+}
+
+.health-copy h2 {
+    font-size: 22px !important;
+    margin-bottom: 7px !important;
+}
+
+.health-copy p {
+    font-size: 15px !important;
+    line-height: 1.34 !important;
+}
+
+.stats-grid {
+    gap: 8px !important;
+    margin-top: 14px !important;
+}
+
+.stat {
+    min-height: 62px !important;
+    padding: 10px !important;
+}
+
+.stat small {
+    margin-bottom: 8px !important;
+    font-size: 12px !important;
+}
+
+.stat strong {
+    font-size: 17px !important;
+}
+
+.chat {
+    gap: 12px !important;
+}
+
+.message {
+    max-width: 82% !important;
+    padding: 12px 14px !important;
+    font-size: 14px !important;
+    line-height: 1.38 !important;
+}
+
+.message.bot {
+    max-width: calc(100% - 52px) !important;
+    margin-left: 52px !important;
+}
+
+.message.bot::before {
+    left: -50px !important;
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 15px !important;
+}
+
+.phone > .chat-scroll > .quick-row {
+    min-height: 38px !important;
+    padding: 0 8px 6px 0 !important;
+    margin: 14px 0 10px !important;
+}
+
+.quick-btn {
+    height: 34px !important;
+    padding: 0 13px !important;
+}
+
+.phone > .chat-scroll > .input-bar {
+    height: 52px !important;
+    grid-template-columns: minmax(0, 1fr) 48px !important;
+    gap: 9px !important;
+    margin-bottom: 4px !important;
+}
+
+.phone > .chat-scroll > .input-bar input {
+    height: 52px !important;
+    border-radius: 17px !important;
+    font-size: 15px !important;
+}
+
+.phone > .chat-scroll > .input-bar button {
+    width: 48px !important;
+    height: 48px !important;
+}
+
+.coach-bot .eye {
+    transform: none !important;
+    transition: width .18s ease, height .18s ease, border-radius .18s ease, transform .18s ease, background .18s ease;
+}
+
+.coach-bot.mood-happy .eye {
+    width: 8px !important;
+    height: 8px !important;
+    border-radius: 50% !important;
+    background: #ffbf3f !important;
+}
+
+.coach-bot.mood-happy .mouth {
+    width: 14px !important;
+    height: 7px !important;
+    top: 18px !important;
+    left: 21px !important;
+    border-bottom: 2px solid #ffbf3f !important;
+    border-top: 0 !important;
+    background: transparent !important;
+    border-radius: 0 0 12px 12px !important;
+}
+
+.coach-bot.mood-thinking .eye {
+    width: 11px !important;
+    height: 6px !important;
+    border-radius: 999px !important;
+    background: #ffbf3f !important;
+}
+
+.coach-bot.mood-thinking .mouth {
+    width: 10px !important;
+    height: 3px !important;
+    top: 20px !important;
+    left: 23px !important;
+    border: 0 !important;
+    background: #ffbf3f !important;
+    border-radius: 999px !important;
+}
+
+.coach-bot.mood-warning .eye {
+    width: 8px !important;
+    height: 8px !important;
+    border-radius: 2px !important;
+    background: #ff7426 !important;
+}
+
+.coach-bot.mood-warning .mouth {
+    width: 15px !important;
+    height: 8px !important;
+    top: 21px !important;
+    left: 20px !important;
+    border-top: 2px solid #ff7426 !important;
+    border-bottom: 0 !important;
+    background: transparent !important;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.coach-bot.mood-panic .eye {
+    width: 8px !important;
+    height: 8px !important;
+    border-radius: 1px !important;
+    background: #ff5b5b !important;
+    transform: rotate(45deg) !important;
+}
+
+.coach-bot.mood-panic .mouth {
+    width: 14px !important;
+    height: 8px !important;
+    top: 21px !important;
+    left: 21px !important;
+    border-top: 2px solid #ff5b5b !important;
+    border-bottom: 0 !important;
+    background: transparent !important;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+/* Softer budget usage indicator. */
+.score-ring,
+#scoreRing {
+    width: 88px !important;
+    height: 88px !important;
+    position: relative !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 50% !important;
+    background:
+        conic-gradient(
+            from -90deg,
+            #ff9f45 0 var(--score-angle, 0%),
+            rgba(255,255,255,.105) var(--score-angle, 0%) 100%
+        ) !important;
+    box-shadow:
+        0 10px 24px rgba(255,116,38,.16),
+        inset 0 0 0 1px rgba(255,255,255,.08) !important;
+    overflow: visible !important;
+}
+
+.score-ring.usage-zero,
+#scoreRing.usage-zero {
+    background: conic-gradient(from -90deg, rgba(255,255,255,.105) 0 100%) !important;
+    box-shadow:
+        0 10px 24px rgba(0,0,0,.20),
+        inset 0 0 0 1px rgba(255,255,255,.07) !important;
+}
+
+.score-ring.usage-low,
+#scoreRing.usage-low {
+    background:
+        conic-gradient(
+            from -90deg,
+            #ffca72 0 var(--score-angle, 0%),
+            rgba(255,255,255,.105) var(--score-angle, 0%) 100%
+        ) !important;
+}
+
+.score-ring.usage-mid,
+#scoreRing.usage-mid {
+    background:
+        conic-gradient(
+            from -90deg,
+            #ffb457 0 var(--score-angle, 0%),
+            rgba(255,255,255,.105) var(--score-angle, 0%) 100%
+        ) !important;
+}
+
+.score-ring.usage-high,
+#scoreRing.usage-high {
+    background:
+        conic-gradient(
+            from -90deg,
+            #ff7a1f 0 var(--score-angle, 0%),
+            rgba(255,255,255,.105) var(--score-angle, 0%) 100%
+        ) !important;
+}
+
+.score-ring.usage-over,
+#scoreRing.usage-over {
+    background:
+        conic-gradient(
+            from -90deg,
+            #ff5b5b 0 var(--score-angle, 0%),
+            rgba(255,255,255,.105) var(--score-angle, 0%) 100%
+        ) !important;
+}
+
+.score-ring::before,
+#scoreRing::before {
+    content: "" !important;
+    position: absolute !important;
+    inset: 8px !important;
+    border-radius: 50% !important;
+    background:
+        radial-gradient(circle at 45% 28%, rgba(255,255,255,.055), transparent 34%),
+        #071019 !important;
+    box-shadow:
+        inset 0 0 18px rgba(0,0,0,.42),
+        0 0 0 1px rgba(255,255,255,.055) !important;
+    z-index: 0 !important;
+}
+
+.score-ring::after,
+#scoreRing::after {
+    content: "" !important;
+    position: absolute !important;
+    inset: -3px !important;
+    border-radius: 50% !important;
+    border: 1px solid rgba(255,116,38,.20) !important;
+    box-shadow: 0 0 20px rgba(255,116,38,.12) !important;
+    pointer-events: none !important;
+}
+
+.score-ring-inner {
+    width: 62px !important;
+    height: 62px !important;
+    position: relative !important;
+    z-index: 1 !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+#healthScore {
+    font-size: 24px !important;
+    line-height: .95 !important;
+    letter-spacing: -.8px !important;
+}
+
+.score-ring-inner small {
+    margin-top: 4px !important;
+    font-size: 10px !important;
+    color: #cdd3df !important;
+}
+
+/* Chat layout: conversation scrolls above fixed quick prompts and composer. */
+.phone > .chat-scroll {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+.coach-head,
+.phone > .chat-scroll > .quick-row,
+.phone > .chat-scroll > .input-bar {
+    flex: 0 0 auto !important;
+}
+
+.chat {
+    flex: 1 1 auto !important;
+    min-height: 120px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    margin: 0 0 10px !important;
+    padding: 4px 4px 10px 0 !important;
+    scrollbar-width: none;
+    overscroll-behavior: contain;
+}
+
+.chat::-webkit-scrollbar {
+    display: none;
+}
+
+.chat::before {
+    content: "";
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.chat .message {
+    flex: 0 0 auto;
+}
+
+.phone > .chat-scroll > .quick-row {
+    margin: 0 0 10px !important;
+    padding: 2px 8px 4px 0 !important;
+}
+
+.phone > .chat-scroll > .input-bar {
+    margin: 0 !important;
+}
+
+#botHero {
+    position: absolute !important;
+    top: 180px;
+    left: 18px;
+    right: 18px;
+    width: auto !important;
+    margin: 0 !important;
+    z-index: 40;
+    background-color: #17191e !important;
+    background-image:
+        radial-gradient(circle at 88% 12%, #6a381c 0%, #3a2117 42%, #17191e 100%) !important;
+    opacity: 1 !important;
+    backdrop-filter: none !important;
+    isolation: isolate;
+    animation: coachOverlayIn .24s ease-out both;
+}
+
+@keyframes coachOverlayIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.hide-bot-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 50%;
+    background: rgba(4,7,11,.42);
+    color: #f7f8fb;
+    display: block;
+    cursor: pointer;
+    z-index: 3;
+    transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.hide-bot-btn::before,
+.hide-bot-btn::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 11px;
+    height: 2px;
+    border-radius: 999px;
+    background: currentColor;
+}
+
+.hide-bot-btn::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.hide-bot-btn::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.hide-bot-btn:hover,
+.hide-bot-btn:focus-visible {
+    background: rgba(255,116,38,.18);
+    border-color: rgba(255,116,38,.72);
+    transform: scale(1.05);
+    outline: none;
+}
+
+.bot-hero.is-hidden {
+    display: none !important;
+}
+
+.restore-bot-btn {
+    position: absolute !important;
+    top: 190px;
+    right: 7px;
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    border: 1px solid rgba(255,116,38,.72);
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 36% 25%, rgba(255,255,255,.16), transparent 24%),
+        linear-gradient(145deg, #1a2029, #090d13);
+    box-shadow:
+        0 10px 24px rgba(0,0,0,.34),
+        0 0 18px rgba(255,116,38,.20);
+    display: none;
+    place-items: center;
+    cursor: pointer;
+    z-index: 50;
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.restore-bot-btn::before {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,116,38,.24), rgba(255,116,38,0) 68%);
+    animation: miniBotInnerGlow 2.4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.restore-bot-btn.active {
+    display: grid;
+    animation:
+        miniBotCircleFloat 2.2s ease-in-out infinite,
+        miniBotCircleGlow 1.8s ease-in-out infinite;
+}
+
+.restore-bot-btn:hover,
+.restore-bot-btn:focus-visible {
+    animation-play-state: paused;
+    transform: translateX(-4px) scale(1.07);
+    box-shadow:
+        0 12px 28px rgba(0,0,0,.38),
+        0 0 22px rgba(255,116,38,.34);
+    outline: none;
+}
+
+.mini-robot {
+    position: relative;
+    width: 31px;
+    height: 27px;
+    border: 2px solid #ff8a24;
+    border-radius: 11px;
+    background: linear-gradient(145deg, #eef2f8, #7d8897);
+    z-index: 1;
+    animation: miniBotIdle 2.8s ease-in-out infinite;
+}
+
+.mini-robot::before {
+    content: "";
+    position: absolute;
+    left: 5px;
+    right: 5px;
+    top: 6px;
+    height: 12px;
+    border-radius: 6px;
+    background: #09131e;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.16);
+}
+
+.mini-robot::after {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 10px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #ffbf3f;
+    box-shadow:
+        9px 0 0 #ffbf3f,
+        0 0 7px rgba(255,191,63,.78);
+    animation: miniBotBlink 3.8s ease-in-out .7s infinite;
+}
+
+@keyframes miniBotCircleFloat {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    35% {
+        transform: translateY(-7px) rotate(-2deg);
+    }
+    65% {
+        transform: translateY(-4px) rotate(2deg);
+    }
+}
+
+@keyframes miniBotCircleGlow {
+    0%, 100% {
+        border-color: rgba(255,116,38,.58);
+        box-shadow:
+            0 10px 24px rgba(0,0,0,.34),
+            0 0 12px rgba(255,116,38,.16);
+    }
+    50% {
+        border-color: rgba(255,145,72,1);
+        box-shadow:
+            0 14px 28px rgba(0,0,0,.40),
+            0 0 26px rgba(255,116,38,.48);
+    }
+}
+
+@keyframes miniBotInnerGlow {
+    0%, 100% {
+        opacity: .45;
+        transform: scale(.9);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.12);
+    }
+}
+
+@keyframes miniBotIdle {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-2px) rotate(-2deg); }
+    50% { transform: translateY(0) rotate(0deg); }
+    75% { transform: translateY(-2px) rotate(2deg); }
+}
+
+@keyframes miniBotBlink {
+    0%, 44%, 48%, 100% {
+        height: 5px;
+        transform: translateY(0);
+    }
+    46% {
+        height: 2px;
+        transform: translateY(2px);
+    }
+}
+
+</style>
+</head>
+
+<body>
+<main class="stage">
+    <section class="phone">
+        <div class="chat-scroll">
+            <header class="coach-head">
+                <a class="back-btn" href="/budget" aria-label="Back to budget">‹</a>
+                <div class="coach-title">
+                    <h1>AI Money Coach</h1>
+                    <p>Budget advice and saving tips</p>
+                </div>
+                <button class="refresh-btn" id="refreshCoach" type="button" aria-label="Refresh advice">↻</button>
+            </header>
+
+            <section class="bot-hero" id="botHero">
+                <button class="hide-bot-btn" id="hideBotBtn" type="button" aria-label="Hide coach summary" title="Hide coach summary"></button>
+                <div class="coach-bot" id="coachBot">
+                    <span class="crown"></span>
+                    <span class="ear left"></span>
+                    <span class="ear right"></span>
+                    <span class="body">
+                        <span class="screen">
+                            <span class="eye left"></span>
+                            <span class="eye right"></span>
+                            <span class="mouth"></span>
+                        </span>
+                    </span>
+                </div>
+
+                <div class="bot-text">
+                    <strong id="coachStatus">Loading...</strong>
+                    <p id="coachHeadline">Checking your budget health.</p>
+                </div>
+            </section>
+
+            <section class="chat" id="chatMessages">
+                <div class="message bot">Ask me anything about your budget. I can help you spend smarter, save more, or plan a simple challenge.</div>
+            </section>
+
+            <div class="quick-row">
+                <button class="quick-btn" data-message="Check my budget health">Budget health</button>
+                <button class="quick-btn" data-message="How can I save more this week?">Save more</button>
+                <button class="quick-btn" data-message="What is my biggest spending?">Top spending</button>
+                <button class="quick-btn" data-message="Give me a saving challenge">Saving challenge</button>
+            </div>
+
+            <form class="input-bar" id="coachForm">
+                <input id="coachInput" type="text" placeholder="Ask your AI coach...">
+                <button type="submit" aria-label="Send coach message">&#10148;</button>
+            </form>
+        </div>
+
+        <button class="restore-bot-btn" id="restoreBotBtn" type="button" aria-label="Show coach summary" title="Show coach summary">
+            <span class="mini-robot" aria-hidden="true"></span>
+        </button>
+
+        <nav class="bottom-nav">
+            <a class="nav-item" href="/main-menu">
+                <span class="nav-icon nav-main"></span>
+                <em>Main</em>
+            </a>
+            <a class="nav-item" href="/voucher">
+                <span class="nav-icon nav-voucher"></span>
+                <em>Voucher</em>
+            </a>
+            <a class="nav-item" href="/map">
+                <span class="nav-icon nav-map"></span>
+                <em>Map</em>
+            </a>
+            <a class="nav-item active" href="/budget">
+                <span class="nav-icon nav-budget"></span>
+                <em>Budget</em>
+            </a>
+            <a class="nav-item" href="/profile">
+                <span class="nav-icon nav-profile"></span>
+                <em>Profile</em>
+            </a>
+        </nav>
+    </section>
+</main>
+
+<script>
+const chatMessages = document.getElementById("chatMessages");
+const coachForm = document.getElementById("coachForm");
+const coachInput = document.getElementById("coachInput");
+const coachBot = document.getElementById("coachBot");
+
+function money(value) {
+    return "RM" + Number(value || 0).toFixed(0);
+}
+
+function addMessage(text, type = "bot") {
+    const message = document.createElement("div");
+    message.className = "message " + type;
+    message.textContent = text;
+    chatMessages.appendChild(message);
+    
+    if (chatMessages) {
+        chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: "smooth" });
+    }
+    
+}
+
+function setMood(mood) {
+    const safeMood = mood || "happy";
+    const hero = coachBot.closest(".bot-hero");
+
+    coachBot.classList.remove("mood-happy", "mood-thinking", "mood-warning", "mood-panic");
+    coachBot.classList.add("mood-" + safeMood);
+
+    if (hero) {
+        hero.classList.remove("mood-happy", "mood-thinking", "mood-warning", "mood-panic");
+        hero.classList.add("mood-" + safeMood);
+    }
+}
+
+function setRingState(percent) {
+    const rawPercent = Number(percent || 0);
+    const safePercent = Math.max(0, Math.min(100, rawPercent));
+    const ring = document.getElementById("scoreRing");
+    const healthScore = document.getElementById("healthScore");
+
+    if (ring) {
+        ring.style.setProperty("--score-angle", safePercent + "%");
+        ring.style.removeProperty("background");
+        ring.classList.remove("usage-zero", "usage-low", "usage-mid", "usage-high", "usage-over");
+
+        if (rawPercent <= 0.5) ring.classList.add("usage-zero");
+        else if (rawPercent <= 50) ring.classList.add("usage-low");
+        else if (rawPercent <= 75) ring.classList.add("usage-mid");
+        else if (rawPercent <= 100) ring.classList.add("usage-high");
+        else ring.classList.add("usage-over");
+    }
+
+    if (healthScore) {
+        healthScore.textContent = Math.round(rawPercent) + "%";
+    }
+}
+
+window.setAiCoachRingState = setRingState;
+
+async function loadCoach(message = "") {
+    setMood(message ? "thinking" : "happy");
+
+    const options = message
+        ? {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message })
+        }
+        : {};
+
+    const response = await fetch("/api/ai-money-coach", options);
+    const data = await response.json();
+
+    document.getElementById("coachStatus").textContent = data.status || "Budget Coach";
+    document.getElementById("coachHeadline").textContent = data.ai_enabled ? "Real AI is giving advice based on your budget." : (data.headline || "Here is your money summary.");
+
+    setMood(data.mood || "happy");
+
+    if (message) {
+        addMessage(data.reply || "I checked your spending and prepared advice.", "bot");
+    }
+}
+
+document.getElementById("refreshCoach").addEventListener("click", () => {
+    loadCoach();
+});
+
+document.getElementById("hideBotBtn").addEventListener("click", () => {
+    document.getElementById("botHero").classList.add("is-hidden");
+    document.getElementById("restoreBotBtn").classList.add("active");
+});
+
+document.getElementById("restoreBotBtn").addEventListener("click", () => {
+    document.getElementById("botHero").classList.remove("is-hidden");
+    document.getElementById("restoreBotBtn").classList.remove("active");
+});
+
+loadCoach();
+</script>
+
+
+<script>
+/* Quick buttons hard reset handler */
+(function () {
+    function money(value) {
+        return "RM" + Number(value || 0).toFixed(0);
+    }
+
+    function scrollChat() {
+        const chat = document.getElementById("chatMessages");
+        if (chat) {
+            chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" });
+        }
+    }
+
+    function addBubble(text, type) {
+        const chat = document.getElementById("chatMessages");
+        if (!chat) return;
+
+        const bubble = document.createElement("div");
+        bubble.className = "message " + (type || "bot");
+        bubble.textContent = text;
+        chat.appendChild(bubble);
+        scrollChat();
+    }
+
+    function setCoachMood(mood) {
+        const bot = document.getElementById("coachBot");
+        if (!bot) return;
+
+        const safeMood = mood || "happy";
+        const hero = bot.closest(".bot-hero");
+
+        bot.classList.remove("mood-happy", "mood-thinking", "mood-warning", "mood-panic");
+        bot.classList.add("mood-" + safeMood);
+
+        if (hero) {
+            hero.classList.remove("mood-happy", "mood-thinking", "mood-warning", "mood-panic");
+            hero.classList.add("mood-" + safeMood);
+        }
+    }
+
+    function updateDashboard(data) {
+        const status = document.getElementById("coachStatus");
+        const headline = document.getElementById("coachHeadline");
+        const healthScore = document.getElementById("healthScore");
+        const scoreRing = document.getElementById("scoreRing");
+        const healthTip = document.getElementById("healthTip");
+        const statBudget = document.getElementById("statBudget");
+        const statSpent = document.getElementById("statSpent");
+        const statRemain = document.getElementById("statRemain");
+
+        if (status) status.textContent = data.status || "Budget Coach";
+        if (headline) headline.textContent = data.ai_enabled ? "Real AI is giving advice based on your budget." : (data.headline || "Here is your money summary.");
+        if (window.setAiCoachRingState) {
+            window.setAiCoachRingState(data.used_percent);
+        } else {
+            if (healthScore) healthScore.textContent = Math.round(Number(data.used_percent || 0)) + "%";
+            if (scoreRing) scoreRing.style.setProperty("--score-angle", `${Math.min(100, Number(data.used_percent || 0))}%`);
+        }
+        if (healthTip) healthTip.textContent = data.tip || "Keep tracking expenses for better advice.";
+        if (statBudget) statBudget.textContent = money(data.monthly_budget);
+        if (statSpent) statSpent.textContent = money(data.total_spent);
+        if (statRemain) statRemain.textContent = money(data.remaining);
+
+        setCoachMood(data.mood || "happy");
+    }
+
+    async function askCoach(text) {
+        if (!text) return;
+
+        addBubble(text, "user");
+        setCoachMood("thinking");
+
+        try {
+            const response = await fetch("/api/ai-money-coach", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: text })
+            });
+
+            const data = await response.json();
+            updateDashboard(data);
+            addBubble(data.reply || "I checked your spending and prepared advice.", "bot");
+        } catch (error) {
+            console.error(error);
+            setCoachMood("warning");
+            addBubble("I could not reach the AI coach right now. Check your terminal, then try again.", "bot");
+        }
+    }
+
+    function setupForm() {
+        const form = document.getElementById("coachForm");
+        const input = document.getElementById("coachInput");
+
+        if (!form || !input || form.dataset.hardResetReady === "true") return;
+
+        form.dataset.hardResetReady = "true";
+
+        form.addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            const text = input.value.trim();
+            if (!text) return;
+
+            input.value = "";
+            askCoach(text);
+        });
+    }
+
+    function setupQuickRows() {
+        document.querySelectorAll(".quick-row").forEach((row) => {
+            if (row.dataset.hardResetReady === "true") return;
+            row.dataset.hardResetReady = "true";
+
+            row.querySelectorAll(".quick-btn").forEach((oldButton) => {
+                const button = oldButton.cloneNode(true);
+                oldButton.replaceWith(button);
+
+                let down = false;
+                let startX = 0;
+                let startScrollLeft = 0;
+                let moved = false;
+
+                button.addEventListener("pointerdown", function (event) {
+                    down = true;
+                    moved = false;
+                    startX = event.clientX;
+                    startScrollLeft = row.scrollLeft;
+                    button.classList.add("quick-pressed");
+                    row.classList.add("dragging");
+
+                    try {
+                        button.setPointerCapture(event.pointerId);
+                    } catch (_) {}
+                });
+
+                button.addEventListener("pointermove", function (event) {
+                    if (!down) return;
+
+                    const dx = event.clientX - startX;
+
+                    if (Math.abs(dx) > 10) {
+                        moved = true;
+                        row.scrollLeft = startScrollLeft - dx;
+                        event.preventDefault();
+                    }
+                });
+
+                button.addEventListener("pointerup", function (event) {
+                    if (!down) return;
+
+                    down = false;
+                    button.classList.remove("quick-pressed");
+                    row.classList.remove("dragging");
+
+                    try {
+                        button.releasePointerCapture(event.pointerId);
+                    } catch (_) {}
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    if (!moved) {
+                        const text = button.dataset.message || button.textContent.trim();
+                        askCoach(text);
+                    }
+                });
+
+                button.addEventListener("pointercancel", function () {
+                    down = false;
+                    moved = false;
+                    button.classList.remove("quick-pressed");
+                    row.classList.remove("dragging");
+                });
+
+                button.addEventListener("click", function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                });
+            });
+
+            row.addEventListener("wheel", function (event) {
+                const delta = Math.abs(event.deltaY) > Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
+
+                if (delta !== 0) {
+                    row.scrollLeft += delta;
+                    event.preventDefault();
+                }
+            }, { passive: false });
+        });
+    }
+
+    setupForm();
+    setupQuickRows();
+
+    document.addEventListener("DOMContentLoaded", function () {
+        setupForm();
+        setupQuickRows();
+    });
+})();
+</script>
+
+
+<script>
+/* AI Coach Direct Budget Sync Fix */
+(function () {
+    function money(value) {
+        return "RM" + Number(value || 0).toFixed(0);
+    }
+
+    function setText(id, text) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+    }
+
+    function setUsageRing(percent) {
+        if (window.setAiCoachRingState) {
+            window.setAiCoachRingState(percent);
+            return;
+        }
+
+        const rawPercent = Number(percent || 0);
+        const safePercent = Math.max(0, Math.min(100, rawPercent));
+        const ring = document.getElementById("scoreRing");
+        const healthScore = document.getElementById("healthScore");
+
+        if (ring) {
+            ring.style.setProperty("--score-angle", safePercent + "%");
+            ring.style.removeProperty("background");
+            ring.classList.remove("usage-zero", "usage-low", "usage-mid", "usage-high", "usage-over");
+
+            if (rawPercent <= 0.5) ring.classList.add("usage-zero");
+            else if (rawPercent <= 50) ring.classList.add("usage-low");
+            else if (rawPercent <= 75) ring.classList.add("usage-mid");
+            else if (rawPercent <= 100) ring.classList.add("usage-high");
+            else ring.classList.add("usage-over");
+        }
+
+        if (healthScore) {
+            healthScore.textContent = Math.round(rawPercent) + "%";
+        }
+    }
+
+    function moodFromUsage(percent) {
+        const used = Number(percent || 0);
+        if (used <= 50) return "happy";
+        if (used <= 75) return "thinking";
+        if (used <= 100) return "warning";
+        return "panic";
+    }
+
+    function setCoachMood(mood) {
+        const bot = document.getElementById("coachBot");
+        if (!bot) return;
+
+        const safeMood = mood || "happy";
+        const hero = bot.closest(".bot-hero");
+
+        bot.classList.remove("mood-happy", "mood-thinking", "mood-warning", "mood-panic");
+        bot.classList.add("mood-" + safeMood);
+
+        if (hero) {
+            hero.classList.remove("mood-happy", "mood-thinking", "mood-warning", "mood-panic");
+            hero.classList.add("mood-" + safeMood);
+        }
+    }
+
+    async function syncBudgetFromSummary() {
+        try {
+            const response = await fetch("/api/budget/summary", { cache: "no-store" });
+            const data = await response.json();
+
+            const monthlyBudget = Number(data.monthly_budget ?? data.monthlyBudget ?? data.budget ?? 0);
+            const spent = Number(data.spent ?? data.total_spent ?? data.totalSpent ?? 0);
+            const remaining = Number(data.remaining ?? Math.max(0, monthlyBudget - spent));
+            const usedPercent = Number(data.usage_percent ?? data.used_percent ?? (monthlyBudget > 0 ? (spent / monthlyBudget) * 100 : 0));
+
+            setUsageRing(usedPercent);
+            setText("statBudget", money(monthlyBudget));
+            setText("statSpent", money(spent));
+            setText("statRemain", money(remaining));
+            setCoachMood(moodFromUsage(usedPercent));
+
+            const status = document.getElementById("coachStatus");
+            const headline = document.getElementById("coachHeadline");
+            const tip = document.getElementById("healthTip");
+
+            if (status) {
+                if (usedPercent <= 50) status.textContent = "On track";
+                else if (usedPercent <= 75) status.textContent = "Watchful";
+                else if (usedPercent <= 100) status.textContent = "Careful";
+                else status.textContent = "Over budget";
+            }
+
+            if (headline) {
+                headline.textContent = usedPercent <= 50
+                    ? "You are doing well so far."
+                    : "Your spending is picking up. Keep an eye on your budget.";
+            }
+
+            if (tip) {
+                tip.textContent = `${Math.round(usedPercent)}% of your budget used. ${money(spent)} spent, ${money(remaining)} remaining.`;
+            }
+        } catch (error) {
+            console.warn("Budget sync failed:", error);
+        }
+    }
+
+    window.syncBudgetFromSummary = syncBudgetFromSummary;
+
+    document.addEventListener("DOMContentLoaded", syncBudgetFromSummary);
+    syncBudgetFromSummary();
+
+    setInterval(syncBudgetFromSummary, 5000);
+})();
+</script>
+
+</body>
+</html>

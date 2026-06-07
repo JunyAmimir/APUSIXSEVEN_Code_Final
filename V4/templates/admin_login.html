@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vouchr Admin Login</title>
+<style>
+:root {
+    --bg: #07090d;
+    --card: rgba(18, 22, 28, 0.84);
+    --card-strong: rgba(9, 12, 17, 0.92);
+    --line: rgba(255, 255, 255, 0.13);
+    --line-hot: rgba(255, 106, 0, 0.54);
+    --orange: #ff6a00;
+    --orange-soft: #ff7a1a;
+    --text: #f5f5f5;
+    --muted: #a3a3a3;
+    --input: #10141b;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    padding: 32px;
+    overflow-x: hidden;
+    color: var(--text);
+    font-family: Inter, "Segoe UI", Arial, Helvetica, sans-serif;
+    background:
+        radial-gradient(circle at 18% 18%, rgba(255, 106, 0, 0.13), transparent 30%),
+        radial-gradient(circle at 82% 72%, rgba(255, 106, 0, 0.10), transparent 34%),
+        linear-gradient(135deg, #090b10 0%, #06080c 48%, #0a0d12 100%);
+}
+
+body::before,
+body::after {
+    content: "";
+    position: fixed;
+    inset: auto auto -18vh -12vw;
+    width: 72vw;
+    height: 36vh;
+    pointer-events: none;
+    background:
+        repeating-radial-gradient(ellipse at 50% 100%, transparent 0 12px, rgba(255, 106, 0, 0.18) 13px 14px),
+        radial-gradient(ellipse at center, rgba(255, 106, 0, 0.28), transparent 68%);
+    filter: blur(0.2px);
+    transform: rotate(9deg);
+    opacity: 0.66;
+}
+
+body::after {
+    inset: auto -12vw -17vh auto;
+    transform: rotate(-8deg) scaleX(-1);
+    opacity: 0.58;
+}
+
+.spark {
+    position: fixed;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(255, 106, 0, 0.78);
+    box-shadow: 0 0 18px rgba(255, 106, 0, 0.75);
+    pointer-events: none;
+}
+
+.spark.one { left: 12%; top: 29%; }
+.spark.two { left: 25%; top: 39%; }
+.spark.three { right: 16%; top: 34%; }
+.spark.four { right: 22%; bottom: 28%; }
+
+.login-card {
+    position: relative;
+    z-index: 1;
+    width: min(620px, calc(100vw - 48px));
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    background:
+        linear-gradient(145deg, rgba(255, 106, 0, 0.08), transparent 30%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025)),
+        var(--card);
+    box-shadow: 0 34px 90px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    overflow: hidden;
+    backdrop-filter: blur(18px);
+}
+
+.login-inner {
+    padding: 48px 56px 28px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    margin-bottom: 38px;
+}
+
+.brand-mark {
+    width: 58px;
+    height: 58px;
+    display: grid;
+    place-items: center;
+    color: var(--orange);
+    font-size: 54px;
+    line-height: 1;
+    font-weight: 950;
+    letter-spacing: 0;
+    text-shadow: 0 13px 30px rgba(255, 106, 0, 0.42);
+    transform: scaleX(1.08);
+}
+
+.brand-name {
+    font-size: 30px;
+    font-weight: 900;
+    letter-spacing: 0;
+}
+
+.title {
+    text-align: center;
+    margin-bottom: 34px;
+}
+
+.title h1 {
+    margin: 0 0 12px;
+    color: #fff;
+    font-size: clamp(30px, 4vw, 38px);
+    line-height: 1.05;
+    letter-spacing: 0;
+}
+
+.title p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 1.45;
+}
+
+.error {
+    margin: -8px 0 20px;
+    padding: 13px 15px;
+    border-radius: 13px;
+    border: 1px solid rgba(255, 85, 85, 0.32);
+    background: rgba(255, 85, 85, 0.09);
+    color: #ffabab;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.field {
+    margin-bottom: 22px;
+}
+
+.field label {
+    display: block;
+    margin: 0 0 10px;
+    color: #f0f2f6;
+    font-size: 15px;
+    font-weight: 750;
+}
+
+.input-wrap {
+    position: relative;
+}
+
+.input-wrap svg {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a7adb9;
+    pointer-events: none;
+}
+
+.input-wrap .left-icon {
+    left: 17px;
+}
+
+.input-wrap input {
+    width: 100%;
+    height: 58px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(16, 20, 27, 0.84);
+    color: #fff;
+    outline: 0;
+    padding: 0 52px;
+    font-size: 17px;
+    transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.input-wrap input::placeholder {
+    color: #7d8491;
+}
+
+.input-wrap input:focus {
+    border-color: var(--line-hot);
+    background: rgba(17, 21, 29, 0.98);
+    box-shadow: 0 0 0 4px rgba(255, 106, 0, 0.11), 0 0 28px rgba(255, 106, 0, 0.11);
+}
+
+.toggle-password {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    width: 38px;
+    height: 38px;
+    transform: translateY(-50%);
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #a7adb9;
+    cursor: pointer;
+}
+
+.toggle-password svg {
+    position: static;
+    transform: none;
+    pointer-events: auto;
+}
+
+.toggle-password:hover,
+.toggle-password:focus-visible {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.06);
+    outline: none;
+}
+
+.form-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin: 6px 0 32px;
+    color: #e1e3e8;
+    font-size: 16px;
+}
+
+.remember {
+    display: inline-flex;
+    align-items: center;
+    gap: 11px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.remember input {
+    width: 21px;
+    height: 21px;
+    margin: 0;
+    accent-color: var(--orange);
+}
+
+.forgot {
+    color: var(--orange-soft);
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.forgot:hover {
+    color: #ff9a45;
+}
+
+.submit {
+    width: 100%;
+    height: 62px;
+    border: 0;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #ff8526 0%, #ff6a00 48%, #ff5714 100%);
+    color: #fff;
+    font-size: 21px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 18px 34px rgba(255, 106, 0, 0.22);
+    transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+}
+
+.submit:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.04);
+    box-shadow: 0 22px 42px rgba(255, 106, 0, 0.30);
+}
+
+.submit:active {
+    transform: translateY(0);
+}
+
+.security {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 27px;
+    color: var(--muted);
+    font-size: 16px;
+}
+
+.security svg {
+    color: #b6bbc5;
+}
+
+.card-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.075);
+    background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.025));
+    padding: 24px 56px 28px;
+    text-align: center;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #c4c7cf;
+    text-decoration: none;
+    font-size: 17px;
+    transition: color 160ms ease;
+}
+
+.back-link:hover {
+    color: #fff;
+}
+
+.demo-note {
+    margin-top: 16px;
+    color: #858b96;
+    font-size: 13px;
+}
+
+@media (max-width: 680px) {
+    body {
+        padding: 18px;
+    }
+
+    .login-card {
+        width: min(100%, 520px);
+        border-radius: 24px;
+    }
+
+    .login-inner,
+    .card-footer {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+
+    .brand {
+        margin-bottom: 30px;
+    }
+
+    .brand-name {
+        font-size: 26px;
+    }
+
+    .form-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 13px;
+    }
+}
+</style>
+</head>
+<body>
+<span class="spark one"></span>
+<span class="spark two"></span>
+<span class="spark three"></span>
+<span class="spark four"></span>
+
+<main class="login-card" aria-labelledby="loginTitle">
+    <section class="login-inner">
+        <div class="brand" aria-label="Vouchr Admin">
+            <div class="brand-mark">V</div>
+            <div class="brand-name">Vouchr Admin</div>
+        </div>
+
+        <div class="title">
+            <h1 id="loginTitle">Welcome back</h1>
+            <p>Sign in to access the admin dashboard.</p>
+        </div>
+
+        {% if error %}
+        <div class="error" role="alert">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" autocomplete="on">
+            <div class="field">
+                <label for="email">Email</label>
+                <div class="input-wrap">
+                    <svg class="left-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 6h16v12H4V6Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                        <path d="m5 7 7 6 7-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <input id="email" name="email" type="email" placeholder="admin@example.com" required>
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="password">Password</label>
+                <div class="input-wrap">
+                    <svg class="left-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M7 10V8a5 5 0 0 1 10 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M6 10h12v10H6V10Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                        <path d="M12 14v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                    <input id="password" name="password" type="password" placeholder="Password" required>
+                    <button class="toggle-password" type="button" aria-label="Show password">
+                        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M2.8 12s3.2-5.5 9.2-5.5 9.2 5.5 9.2 5.5-3.2 5.5-9.2 5.5S2.8 12 2.8 12Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                            <path d="M12 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" stroke="currentColor" stroke-width="1.8"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label class="remember">
+                    <input type="checkbox" name="remember" value="1">
+                    <span>Remember me</span>
+                </label>
+                <a class="forgot" href="#" aria-label="Forgot password placeholder">Forgot password?</a>
+            </div>
+
+            <button class="submit" type="submit">Sign In</button>
+        </form>
+
+        <div class="security">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 3 5 6v5c0 4.5 2.8 8.4 7 10 4.2-1.6 7-5.5 7-10V6l-7-3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                <path d="m9.5 12 1.8 1.8 3.8-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Authorized admins only.</span>
+        </div>
+
+        <div class="demo-note">Demo admin: admin@vouchr.com / admin123</div>
+    </section>
+
+    <footer class="card-footer">
+        <a class="back-link" href="http://127.0.0.1:5000">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Back to main site</span>
+        </a>
+    </footer>
+</main>
+
+<script>
+const passwordInput = document.getElementById('password');
+const togglePassword = document.querySelector('.toggle-password');
+
+if (passwordInput && togglePassword) {
+    togglePassword.addEventListener('click', () => {
+        const isPassword = passwordInput.type === 'password';
+        passwordInput.type = isPassword ? 'text' : 'password';
+        togglePassword.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+    });
+}
+</script>
+</body>
+</html>

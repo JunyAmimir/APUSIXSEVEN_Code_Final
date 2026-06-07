@@ -1,0 +1,17 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Discount">
+  <defs>
+    <filter id="orangeSoftGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.2" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 1  0 1 0 0 .45  0 0 1 0 .10  0 0 0 .42 0"/>
+      <feBlend in="SourceGraphic"/>
+    </filter>
+  </defs>
+
+  <path d="M13.5 30.8L30.8 13.5C32 12.3 33.7 11.6 35.5 11.6H47.4C50.2 11.6 52.4 13.8 52.4 16.6V28.5C52.4 30.3 51.7 32 50.5 33.2L33.2 50.5C31.2 52.5 28 52.5 26 50.5L13.5 38C11.5 36 11.5 32.8 13.5 30.8Z" stroke="#A3A9BA" stroke-width="2.8" stroke-linejoin="round"/>
+
+  <circle cx="43" cy="21" r="3.2" stroke="#FF7426" stroke-width="2.8" filter="url(#orangeSoftGlow)"/>
+  <path d="M24 40L40 24" stroke="#FF7426" stroke-width="3.3" stroke-linecap="round" filter="url(#orangeSoftGlow)"/>
+
+  <circle cx="25.5" cy="27.5" r="3.6" stroke="#747B8D" stroke-width="2.8"/>
+  <circle cx="38.8" cy="38.8" r="3.6" stroke="#747B8D" stroke-width="2.8"/>
+</svg>

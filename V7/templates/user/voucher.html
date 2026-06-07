@@ -1,0 +1,2438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vouchr - Vouchers</title>
+
+<style>
+:root {
+    --orange: #ff7426;
+    --bg: #25282f;
+    --line: rgba(255,255,255,.12);
+    --text: #f7f8fb;
+    --muted: #a3a9ba;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text);
+}
+
+.stage {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 14px;
+}
+
+.phone {
+    width: 330px;
+    height: 708px;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 80% 10%, rgba(255,116,38,.16), transparent 28%),
+        linear-gradient(180deg, #081018 0%, #04070b 100%);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 24px 50px rgba(0,0,0,.35);
+}
+
+.content {
+    height: 100%;
+    overflow-y: auto;
+    padding: 26px 14px 86px;
+    scrollbar-width: none;
+}
+
+.content::-webkit-scrollbar {
+    display: none;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    animation: fadeUp .45s ease both;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 900;
+}
+
+.header a {
+    color: var(--orange);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.search {
+    height: 50px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: rgba(255,255,255,.045);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 14px;
+    margin-bottom: 16px;
+    animation: fadeUp .45s ease .06s both;
+}
+
+.search svg {
+    width: 22px;
+    height: 22px;
+    stroke: #aeb4c6;
+    fill: none;
+    stroke-width: 2.2;
+    flex: 0 0 auto;
+}
+
+.search input {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--text);
+    font-size: 13px;
+}
+
+.search input::placeholder {
+    color: #8f96a8;
+}
+
+.search-results-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 68px;
+    z-index: 15000;
+    display: none;
+    align-items: flex-end;
+    background: rgba(0,0,0,.52);
+    backdrop-filter: blur(7px);
+}
+
+.search-results-overlay.active {
+    display: flex;
+}
+
+.search-results-sheet {
+    width: 100%;
+    max-height: calc(100% - 28px);
+    overflow-y: auto;
+    padding: 13px 18px 20px;
+    border-radius: 28px 28px 0 0;
+    border: 1px solid rgba(255,255,255,.12);
+    border-bottom: 0;
+    background:
+        radial-gradient(circle at 88% 6%, rgba(255,116,38,.16), transparent 28%),
+        linear-gradient(180deg, #141a22, #070b10);
+    box-shadow: 0 -18px 38px rgba(0,0,0,.46);
+    scrollbar-width: none;
+    animation: searchSheetUp .26s cubic-bezier(.2,.85,.25,1) both;
+}
+
+.search-results-sheet::-webkit-scrollbar {
+    display: none;
+}
+
+.search-handle {
+    width: 45px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.20);
+    margin: 0 auto 15px;
+}
+
+.search-results-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.search-results-head h3 {
+    margin: 0 0 4px;
+    font-size: 19px;
+    font-weight: 950;
+    letter-spacing: -.25px;
+}
+
+.search-results-head p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.search-close {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 50%;
+    background: rgba(255,255,255,.06);
+    color: #fff;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+        transform .18s ease,
+        background .18s ease,
+        border-color .18s ease;
+}
+
+.search-close:hover,
+.search-close:focus-visible {
+    background: rgba(255,116,38,.14);
+    border-color: rgba(255,116,38,.45);
+}
+
+.search-close:active {
+    transform: scale(.92);
+}
+
+.search-sheet-input-wrap {
+    height: 49px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: rgba(255,255,255,.045);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 14px;
+    margin-bottom: 15px;
+}
+
+.search-sheet-icon {
+    width: 22px;
+    height: 22px;
+    stroke: #aeb4c6;
+    fill: none;
+    stroke-width: 2.2;
+    flex: 0 0 auto;
+}
+
+.search-sheet-input-wrap input {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--text);
+    font-size: 13px;
+}
+
+.search-sheet-input-wrap input::placeholder {
+    color: #8f96a8;
+}
+
+.search-quick-title {
+    margin: 0 0 10px;
+    color: #a8afbf;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.search-quick-chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    padding: 3px 18px 13px 0;
+    margin-right: -18px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    touch-action: pan-x;
+    cursor: grab;
+    user-select: none;
+    position: relative;
+    z-index: 4;
+}
+
+.search-quick-chips::-webkit-scrollbar {
+    display: none;
+}
+
+.search-quick-chips.dragging {
+    cursor: grabbing;
+    scroll-snap-type: none;
+}
+
+.search-quick-chip {
+    flex: 0 0 auto;
+    height: 31px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,116,38,.50);
+    background: rgba(255,116,38,.06);
+    color: var(--orange);
+    padding: 0 13px;
+    font-size: 11px;
+    font-weight: 900;
+    cursor: pointer;
+    scroll-snap-align: start;
+    pointer-events: auto;
+    transition:
+        transform .18s ease,
+        background .18s ease,
+        border-color .18s ease,
+        box-shadow .18s ease;
+}
+
+.search-quick-chip:hover,
+.search-quick-chip:focus-visible,
+.search-quick-chip.is-selected {
+    background: rgba(255,116,38,.14);
+    border-color: rgba(255,116,38,.78);
+    box-shadow: 0 0 18px rgba(255,116,38,.12);
+}
+
+.search-quick-chip:active {
+    transform: scale(.96);
+}
+
+.search-quick-chips.dragging .search-quick-chip {
+    pointer-events: auto;
+    transform: none;
+}
+
+.search-result-list {
+    display: grid;
+    gap: 10px;
+}
+
+.voucher-search-result {
+    min-height: 76px;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 16px;
+    background: rgba(255,255,255,.045);
+    display: grid;
+    grid-template-columns: 60px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.voucher-search-logo {
+    width: 60px;
+    height: 52px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #171c23;
+}
+
+.voucher-search-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.voucher-search-logo.contain img {
+    object-fit: contain;
+    padding: 5px;
+    background: #fff;
+}
+
+.voucher-search-info {
+    min-width: 0;
+}
+
+.voucher-search-info h4 {
+    margin: 0 0 4px;
+    font-size: 14px;
+    font-weight: 950;
+}
+
+.voucher-search-info p {
+    margin: 0 0 2px;
+    color: var(--orange);
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.voucher-search-info small {
+    display: block;
+    color: #818899;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.voucher-search-view {
+    height: 32px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,116,38,.75);
+    background: rgba(255,116,38,.05);
+    color: var(--orange);
+    padding: 0 14px;
+    font-size: 11px;
+    font-weight: 900;
+    cursor: pointer;
+    transition:
+        transform .18s ease,
+        background .18s ease,
+        border-color .18s ease,
+        box-shadow .18s ease,
+        color .18s ease;
+}
+
+.voucher-search-result:hover .voucher-search-view,
+.voucher-search-view:hover,
+.voucher-search-view:focus-visible {
+    transform: translateY(-1px);
+    background: rgba(255,116,38,.14);
+    border-color: rgba(255,116,38,.92);
+    box-shadow: 0 0 18px rgba(255,116,38,.16);
+    color: #ff7a1a;
+}
+
+.voucher-search-view:active {
+    transform: scale(.95);
+}
+
+.search-empty {
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 16px;
+    background: rgba(255,255,255,.04);
+    color: var(--muted);
+    padding: 15px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+@keyframes searchSheetUp {
+    from { transform: translateY(28px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.voucher-list {
+    display: grid;
+    gap: 13px;
+}
+
+.voucher-empty {
+    display: none;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 16px;
+    background: rgba(255,255,255,.04);
+    color: var(--muted);
+    padding: 15px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.voucher {
+    min-height: 132px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    overflow: hidden;
+    background: rgba(255,255,255,.045);
+    display: grid;
+    grid-template-columns: 118px 1fr;
+    animation: fadeUp .45s ease both;
+}
+
+.voucher:nth-child(2) { animation-delay: .06s; }
+.voucher:nth-child(3) { animation-delay: .12s; }
+.voucher:nth-child(4) { animation-delay: .18s; }
+
+.voucher-img {
+    background-size: cover;
+    background-position: center;
+}
+
+.voucher-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.voucher-img img[src$="default-logo.png"],
+.voucher-img img[src*="mcdonalds-logo"] {
+    object-fit: contain;
+    padding: 14px;
+    background: #fff;
+}
+
+.voucher-img.one { background-image: url("/assets/hero5.png"); }
+.voucher-img.two { background-image: url("/assets/hero2.png"); }
+.voucher-img.three { background-image: url("/assets/hero3.png"); }
+.voucher-img.four { background-image: url("/assets/hero1.png"); }
+.voucher-img.mcd {
+    background: #fff url("/assets/store/mcdonalds-logo.png") center / contain no-repeat;
+}
+
+.voucher-info {
+    padding: 13px 12px;
+}
+
+.voucher-info h3 {
+    margin: 0 0 7px;
+    font-size: 16px;
+}
+
+.voucher-info p {
+    margin: 0 0 9px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.tag,
+.view-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    min-width: 92px;
+    border: 1px solid var(--orange);
+    border-radius: 11px;
+    background: rgba(255,116,38,.05);
+    color: var(--orange);
+    font-size: 11px;
+    font-weight: 900;
+    cursor: pointer;
+    padding: 0 11px;
+    text-decoration: none;
+    line-height: 1;
+    box-shadow:
+        0 0 0 1px rgba(255,116,38,.08),
+        0 8px 18px rgba(0,0,0,.18);
+    transition:
+        transform .18s ease,
+        background .18s ease,
+        border-color .18s ease,
+        box-shadow .18s ease,
+        color .18s ease;
+}
+
+.tag:hover,
+.view-btn:hover {
+    background: rgba(255,116,38,.12);
+    border-color: rgba(255,116,38,.95);
+    box-shadow:
+        0 0 0 1px rgba(255,116,38,.18),
+        0 0 18px rgba(255,116,38,.22),
+        0 12px 24px rgba(0,0,0,.24);
+    transform: translateY(-1px);
+}
+
+.tag:active,
+.view-btn:active {
+    transform: scale(.95);
+    box-shadow:
+        0 0 0 1px rgba(255,116,38,.22),
+        0 0 14px rgba(255,116,38,.20);
+}
+
+.bottom-nav {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 67px;
+    background: rgba(5, 8, 13, .96);
+    border-top: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    backdrop-filter: blur(10px);
+}
+
+.nav-item {
+    color: var(--muted);
+    text-decoration: none;
+    display: grid;
+    place-items: center;
+    padding: 8px 0 7px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.nav-item span {
+    display: block;
+    font-size: 21px;
+    line-height: 1;
+}
+
+.nav-item.active {
+    color: var(--orange);
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================
+   Bottom Navigation SVG Icons
+   Uses your uploaded SVG files as masks so active color works perfectly.
+========================= */
+
+.bottom-nav {
+    height: 68px !important;
+    padding: 4px 4px 5px;
+    background:
+        linear-gradient(180deg, rgba(10, 15, 22, .88), rgba(4, 7, 11, .98)) !important;
+    border-top: 1px solid rgba(255,255,255,.11) !important;
+    box-shadow: 0 -12px 26px rgba(0,0,0,.26);
+}
+
+.nav-item {
+    gap: 3px;
+    color: #8f96a8 !important;
+    border-radius: 14px;
+    transition:
+        color .18s ease,
+        transform .18s ease,
+        background .18s ease,
+        box-shadow .18s ease;
+}
+
+.nav-item:hover {
+    background: rgba(255,255,255,.035);
+}
+
+.nav-item.active {
+    color: #ff7426 !important;
+    background: rgba(255,116,38,.075);
+    box-shadow: inset 0 0 0 1px rgba(255,116,38,.12);
+}
+
+.nav-item:active {
+    transform: scale(.94);
+}
+
+.nav-item em {
+    font-style: normal;
+    font-size: 10px;
+    line-height: 1;
+    font-weight: 800;
+}
+
+.nav-icon {
+    width: 23px;
+    height: 23px;
+    display: block;
+    background: currentColor;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    transition: transform .2s ease;
+}
+
+.nav-item.active .nav-icon {
+    transform: translateY(-1px) scale(1.05);
+}
+
+.nav-main {
+    -webkit-mask-image: url("/assets/nav_icon/main-menu.svg");
+    mask-image: url("/assets/nav_icon/main-menu.svg");
+}
+
+.nav-voucher {
+    -webkit-mask-image: url("/assets/nav_icon/voucher.svg");
+    mask-image: url("/assets/nav_icon/voucher.svg");
+}
+
+.nav-map {
+    -webkit-mask-image: url("/assets/nav_icon/map.svg");
+    mask-image: url("/assets/nav_icon/map.svg");
+}
+
+.nav-budget {
+    -webkit-mask-image: url("/assets/nav_icon/budget.svg");
+    mask-image: url("/assets/nav_icon/budget.svg");
+}
+
+.nav-profile {
+    -webkit-mask-image: url("/assets/nav_icon/profile.svg");
+    mask-image: url("/assets/nav_icon/profile.svg");
+}
+
+/* =========================
+   Bottom nav icon hard fix
+   No external SVG path needed, no new files created.
+   Inline SVGs stay visible even when mask-image fails.
+========================= */
+.bottom-nav .nav-icon {
+    width: 23px !important;
+    height: 23px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+    -webkit-mask: none !important;
+    mask: none !important;
+    color: currentColor !important;
+    overflow: visible !important;
+}
+
+.bottom-nav .nav-icon svg {
+    width: 24px !important;
+    height: 24px !important;
+    display: block !important;
+    stroke: currentColor !important;
+    fill: none !important;
+    stroke-width: 2.25 !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
+}
+
+.bottom-nav .nav-item.active .nav-icon svg {
+    stroke-width: 2.35 !important;
+}
+
+/* =========================
+   Voucher Card Animation + Click Restore Fix
+========================= */
+
+.voucher-card,
+.voucher-item,
+.deal-card,
+.category-voucher-card,
+.search-result-card,
+[class*="voucher-card"],
+[class*="voucher-item"] {
+    cursor: pointer !important;
+    transition:
+        transform .18s ease,
+        border-color .18s ease,
+        box-shadow .18s ease,
+        background .18s ease !important;
+}
+
+.voucher-card:hover,
+.voucher-item:hover,
+.deal-card:hover,
+.category-voucher-card:hover,
+.search-result-card:hover,
+[class*="voucher-card"]:hover,
+[class*="voucher-item"]:hover {
+    transform: translateY(-2px) scale(1.01) !important;
+    border-color: rgba(255,116,38,.55) !important;
+    box-shadow: 0 14px 28px rgba(255,116,38,.10) !important;
+}
+
+.voucher-card.voucher-pressed,
+.voucher-item.voucher-pressed,
+.deal-card.voucher-pressed,
+.category-voucher-card.voucher-pressed,
+.search-result-card.voucher-pressed,
+[class*="voucher-card"].voucher-pressed,
+[class*="voucher-item"].voucher-pressed {
+    transform: scale(.975) !important;
+    border-color: rgba(255,116,38,.85) !important;
+    box-shadow: 0 0 0 2px rgba(255,116,38,.18), 0 16px 32px rgba(255,116,38,.12) !important;
+}
+
+button,
+a {
+    pointer-events: auto !important;
+}
+
+.bottom-nav {
+    z-index: 9999 !important;
+    pointer-events: auto !important;
+}
+
+.bottom-nav a,
+.bottom-nav .nav-item {
+    pointer-events: auto !important;
+    position: relative !important;
+    z-index: 10000 !important;
+}
+
+
+/* =========================
+   Voucher Details Bottom Sheet Modal
+   Same visual style as your screenshot
+========================= */
+.phone.modal-open .content {
+    filter: brightness(.72);
+}
+
+.voucher-modal {
+    position: absolute;
+    inset: 0;
+    z-index: 20000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    pointer-events: none;
+    visibility: hidden;
+    opacity: 0;
+    transition:
+        opacity .34s ease,
+        visibility 0s linear .42s;
+}
+
+.voucher-modal.active {
+    pointer-events: auto;
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 0s;
+}
+
+.modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.34);
+    opacity: 0;
+    transition: opacity .34s ease;
+}
+
+.voucher-modal.active .modal-backdrop {
+    opacity: 1;
+}
+
+.voucher-sheet {
+    position: relative;
+    width: 100%;
+    max-height: 695px;
+    padding: 17px 20px 94px;
+    border-radius: 26px 26px 0 0;
+    border: 1px solid rgba(255,255,255,.12);
+    border-bottom: 0;
+    background:
+        radial-gradient(circle at 88% 12%, rgba(255,116,38,.13), transparent 27%),
+        linear-gradient(180deg, rgba(21,27,35,.98) 0%, rgba(9,14,20,.985) 100%);
+    box-shadow: 0 -22px 46px rgba(0,0,0,.48);
+    transform: translateY(115%);
+    opacity: .94;
+    filter: blur(2px);
+    transition:
+        transform .46s cubic-bezier(.16, 1, .3, 1),
+        opacity .34s ease,
+        filter .42s ease;
+    will-change: transform, opacity, filter;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.voucher-sheet::-webkit-scrollbar {
+    display: none;
+}
+
+.voucher-modal.active .voucher-sheet {
+    transform: translateY(0);
+    opacity: 1;
+    filter: blur(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .voucher-modal,
+    .modal-backdrop,
+    .voucher-sheet {
+        transition: none !important;
+    }
+}
+
+.sheet-handle {
+    width: 56px;
+    height: 6px;
+    margin: 0 auto 18px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.38);
+}
+
+.sheet-top {
+    display: grid;
+    grid-template-columns: 78px 1fr 48px;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.sheet-logo {
+    width: 78px;
+    height: 78px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: linear-gradient(145deg, #ff7426, #f0520c);
+    border: 1px solid rgba(255,255,255,.1);
+    display: grid;
+    place-items: center;
+}
+
+.sheet-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sheet-logo.contain img {
+    object-fit: contain;
+    padding: 7px;
+    background: #fff;
+}
+
+.sheet-title {
+    min-width: 0;
+}
+
+.sheet-title h2 {
+    margin: 0 0 6px;
+    font-size: 24px;
+    line-height: 1.05;
+    font-weight: 900;
+    letter-spacing: -.45px;
+}
+
+.sheet-title p {
+    margin: 0;
+    color: var(--orange);
+    font-size: 15px;
+    line-height: 1.25;
+    font-weight: 900;
+    letter-spacing: .3px;
+}
+
+.sheet-close {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.18);
+    background: rgba(255,255,255,.10);
+    color: #fff;
+    font-size: 27px;
+    line-height: 1;
+    font-weight: 400;
+    cursor: pointer;
+    transition: transform .18s ease, background .18s ease;
+}
+
+.sheet-close:active {
+    transform: scale(.92);
+    background: rgba(255,255,255,.16);
+}
+
+.sheet-card {
+    border: 1px solid rgba(255,255,255,.105);
+    border-radius: 21px;
+    background:
+        linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.025));
+    padding: 15px 16px;
+    margin-top: 13px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.sheet-card h3 {
+    margin: 0 0 10px;
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.sheet-card p,
+.sheet-card li,
+.sheet-info-line {
+    color: #b3bac8;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.sheet-card p {
+    margin: 0;
+}
+
+.sheet-info-line {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 4px 0;
+}
+
+.sheet-terms {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.sheet-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 13px;
+    margin-top: 28px;
+}
+
+.sheet-redeem,
+.sheet-save {
+    height: 55px;
+    border-radius: 16px;
+    font-size: 15px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform .18s ease, filter .18s ease, background .18s ease;
+}
+
+.sheet-redeem {
+    border: 0;
+    color: #fff;
+    background: linear-gradient(145deg, #ff8428, #ff6716);
+    box-shadow: 0 12px 22px rgba(255,116,38,.22);
+}
+
+.sheet-save {
+    border: 1px solid rgba(255,116,38,.75);
+    color: var(--orange);
+    background: rgba(255,116,38,.035);
+}
+
+.sheet-redeem:active,
+.sheet-save:active {
+    transform: scale(.97);
+}
+
+</style>
+<link rel="stylesheet" href="/assets/customer_phone_frame.css">
+<style>
+/* Customer voucher bottom fit: keep final cards close to the fixed nav. */
+.phone > .content {
+    padding-bottom: calc(var(--bottom-nav-height, 78px) + 14px) !important;
+}
+
+.voucher-list,
+.voucher-empty {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Voucher detail modal polish: readable sheet, softer dim, restored slide/fade. */
+.phone.modal-open .content {
+    filter: none !important;
+}
+
+.phone .voucher-modal {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transition: opacity .25s ease, visibility 0s linear .28s !important;
+}
+
+.phone .voucher-modal.active {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    transition-delay: 0s !important;
+}
+
+.phone .modal-backdrop {
+    background: rgba(0, 0, 0, .16) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    opacity: 0 !important;
+    transition: opacity .25s ease !important;
+    z-index: 0 !important;
+}
+
+.phone .voucher-modal.active .modal-backdrop {
+    opacity: 1 !important;
+}
+
+.phone .voucher-sheet {
+    position: relative !important;
+    z-index: 2 !important;
+    color: #f7f8fb !important;
+    opacity: 0 !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    transform: translateY(28px) scale(.98) !important;
+    transition:
+        transform .30s cubic-bezier(.22, 1, .36, 1),
+        opacity .22s ease !important;
+    background:
+        radial-gradient(circle at 88% 8%, rgba(255,116,38,.18), transparent 30%),
+        linear-gradient(180deg, rgba(24,32,42,.98), rgba(11,16,24,.985)) !important;
+    border-color: rgba(255,116,38,.28) !important;
+    box-shadow:
+        0 -22px 48px rgba(0,0,0,.38),
+        0 0 28px rgba(255,116,38,.08) !important;
+}
+
+.phone .voucher-modal.active .voucher-sheet {
+    opacity: 1 !important;
+    transform: translateY(0) scale(1) !important;
+}
+
+.phone .sheet-card {
+    background:
+        radial-gradient(circle at 92% 10%, rgba(255,116,38,.045), transparent 32%),
+        rgba(255,255,255,.055) !important;
+    border-color: rgba(255,255,255,.12) !important;
+}
+
+.phone .sheet-card p,
+.phone .sheet-card li,
+.phone .sheet-info-line {
+    color: #c5cbd8 !important;
+}
+
+.phone .sheet-actions {
+    position: sticky !important;
+    z-index: 6 !important;
+    pointer-events: auto !important;
+    background: linear-gradient(180deg, rgba(11,16,24,0), #0b1018 34%, #0b1018 100%) !important;
+}
+
+.phone .sheet-redeem,
+.phone .sheet-save {
+    position: relative !important;
+    z-index: 7 !important;
+    pointer-events: auto !important;
+    transition:
+        transform .18s ease,
+        filter .18s ease,
+        background .18s ease,
+        border-color .18s ease,
+        box-shadow .18s ease !important;
+}
+
+.phone .sheet-redeem {
+    color: #fff !important;
+    background: linear-gradient(135deg, #ff7a1a, #ff5a00) !important;
+    box-shadow: 0 14px 28px rgba(255,106,0,.24) !important;
+}
+
+.phone .sheet-save {
+    color: #ff7426 !important;
+    border-color: rgba(255,116,38,.68) !important;
+    background: rgba(255,116,38,.07) !important;
+}
+
+.phone .sheet-redeem:hover,
+.phone .sheet-save:hover,
+.phone .sheet-redeem:focus-visible,
+.phone .sheet-save:focus-visible {
+    filter: brightness(1.06);
+    box-shadow: 0 16px 30px rgba(255,106,0,.22) !important;
+}
+
+.phone .sheet-redeem:active,
+.phone .sheet-save:active {
+    transform: scale(.97) !important;
+}
+</style>
+</head>
+
+<body>
+<main class="stage">
+    <section class="phone">
+        <div class="content">
+            <header class="header">
+                <h1>Vouchers</h1>
+                <a href="/main-menu">Back</a>
+            </header>
+
+            <div class="search">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7"/>
+                    <path d="M20 20l-3.8-3.8"/>
+                </svg>
+                <input id="voucherSearchInput" type="text" placeholder="Search restaurants or vouchers" autocomplete="off" oninput="filterVoucherList(this.value)" onkeydown="if(event.key === 'Enter') { event.preventDefault(); filterVoucherList(this.value); }">
+            </div>
+
+            <section class="voucher-list">
+                {% if vouchers and vouchers|length > 0 %}
+                    {% for voucher in vouchers %}
+                    <article class="voucher merchant-voucher"
+                             data-voucher-id="{{ voucher.id }}"
+                             data-voucher-title="{{ voucher.VoucherTitle|e }}"
+                             data-voucher-name="{{ (voucher.name or voucher.merchant_name or 'Merchant')|e }}"
+                             data-voucher-offer="{{ (voucher.offer or voucher.VoucherTitle or 'Special Offer')|e }}"
+                             data-voucher-location="{{ (voucher.Address or voucher.location or 'Selected outlets')|e }}"
+                             data-voucher-image="{{ (voucher.ImageUrl or voucher.logo or '/assets/merchant/default-logo.png')|e }}">
+                        <div class="voucher-img">
+                            <img src="{{ (voucher.ImageUrl or voucher.logo or '/assets/merchant/default-logo.png')|e }}"
+                                 alt="{{ (voucher.VoucherTitle or 'Voucher image')|e }}"
+                                 onerror="if(!this.dataset.fallback){this.dataset.fallback='1'; this.src='/assets/merchant/default-logo.png';}">
+                        </div>
+                        <div class="voucher-info">
+                            <h3>{{ voucher.name or voucher.merchant_name or 'Merchant' }}</h3>
+                            <p>{{ voucher.VoucherTitle or voucher.description or 'Exclusive voucher' }}</p>
+                            <button class="tag view-btn" type="button">View Voucher</button>
+                        </div>
+                    </article>
+                    {% endfor %}
+                {% endif %}
+
+                <article class="voucher" data-voucher-id="tasty-burgers">
+                    <div class="voucher-img"><img src="/assets/voucher/hero5.png" alt="Tasty Burgers" onerror="if(!this.dataset.fallback){this.dataset.fallback='1'; this.src='/assets/hero5.png';}else{this.src='/assets/merchant/default-logo.png';}"></div>
+                    <div class="voucher-info">
+                        <h3>Tasty Burgers</h3>
+                        <p>Fantastic burger deals with up to 40% off.</p>
+                        <button class="tag view-btn" type="button">View Voucher</button>
+                    </div>
+                </article>
+
+                <article class="voucher" data-voucher-id="fresh-sushi">
+                    <div class="voucher-img"><img src="/assets/voucher/hero2.png" alt="Fresh Sushi" onerror="if(!this.dataset.fallback){this.dataset.fallback='1'; this.src='/assets/hero2.png';}else{this.src='/assets/merchant/default-logo.png';}"></div>
+                    <div class="voucher-info">
+                        <h3>Fresh Sushi</h3>
+                        <p>Premium sushi rolls with better savings.</p>
+                        <button class="tag view-btn" type="button">View Voucher</button>
+                    </div>
+                </article>
+
+                <article class="voucher" data-voucher-id="coffee-breaks">
+                    <div class="voucher-img"><img src="/assets/voucher/hero3.png" alt="Coffee Breaks" onerror="if(!this.dataset.fallback){this.dataset.fallback='1'; this.src='/assets/hero3.png';}else{this.src='/assets/merchant/default-logo.png';}"></div>
+                    <div class="voucher-info">
+                        <h3>Coffee Breaks</h3>
+                        <p>Save on coffee and café favorites.</p>
+                        <button class="tag view-btn" type="button">View Voucher</button>
+                    </div>
+                </article>
+
+                <article class="voucher" data-voucher-id="sweet-treats">
+                    <div class="voucher-img"><img src="/assets/voucher/hero1.png" alt="Sweet Treats" onerror="if(!this.dataset.fallback){this.dataset.fallback='1'; this.src='/assets/hero1.png';}else{this.src='/assets/merchant/default-logo.png';}"></div>
+                    <div class="voucher-info">
+                        <h3>Sweet Treats</h3>
+                        <p>Dessert cravings with delightful savings.</p>
+                        <button class="tag view-btn" type="button">View Voucher</button>
+                    </div>
+                </article>
+
+                <article class="voucher" data-voucher-id="mcdonalds" data-search-only="true" style="display: none;">
+                    <div class="voucher-img"><img src="/assets/store/mcdonalds-logo.png" alt="McDonald's" onerror="this.src='/assets/merchant/default-logo.png';"></div>
+                    <div class="voucher-info">
+                        <h3>McDonald's</h3>
+                        <p>Enjoy 15% off your total bill.</p>
+                        <button class="tag view-btn" type="button">View Voucher</button>
+                    </div>
+                </article>
+
+                <div class="voucher-empty" id="voucherSearchEmpty">No matching vouchers found. Try burger, coffee, dessert, drinks or sushi.</div>
+            </section>
+        </div>
+
+
+        <div class="voucher-modal" id="voucherModal" aria-hidden="true">
+            <div class="modal-backdrop" data-close-modal></div>
+            <section class="voucher-sheet" role="dialog" aria-modal="true" aria-labelledby="modalVoucherName">
+                <div class="sheet-handle"></div>
+
+                <div class="sheet-top">
+                    <div class="sheet-logo" id="modalLogoWrap">
+                        <img id="modalLogo" src="" alt="">
+                    </div>
+
+                    <div class="sheet-title">
+                        <h2 id="modalVoucherName">Voucher</h2>
+                        <p id="modalVoucherDiscount">15% OFF Total Bill</p>
+                    </div>
+
+                    <button class="sheet-close" type="button" data-close-modal aria-label="Close voucher details">×</button>
+                </div>
+
+                <div class="sheet-card">
+                    <h3>Voucher Details</h3>
+                    <p id="modalVoucherDescription">Enjoy this voucher at selected outlets.</p>
+                </div>
+
+                <div class="sheet-card">
+                    <h3>Information</h3>
+                    <div class="sheet-info-line"><span>📍</span><span id="modalVoucherLocation">Selected outlets</span></div>
+                    <div class="sheet-info-line"><span>🕘</span><span id="modalVoucherValid">Valid until 31 May 2026</span></div>
+                </div>
+
+                <div class="sheet-card">
+                    <h3>Terms & Conditions</h3>
+                    <ul class="sheet-terms" id="modalVoucherTerms"></ul>
+                </div>
+
+                <div class="sheet-actions">
+                    <button class="sheet-redeem" type="button" id="modalRedeemBtn">Redeem Voucher</button>
+                    <button class="sheet-save" type="button" id="modalSaveBtn">Save Voucher</button>
+                </div>
+            </section>
+        </div>
+
+        <section class="search-results-overlay" id="voucherSearchOverlay" aria-label="Search results">
+            <div class="search-results-sheet">
+                <div class="search-handle"></div>
+
+                <div class="search-results-head">
+                    <div>
+                        <h3 id="voucherSearchTitle">Search Results</h3>
+                        <p id="voucherSearchSubtitle">Tap a voucher to view details.</p>
+                    </div>
+
+                    <button class="search-close" id="voucherSearchCloseBtn" type="button" aria-label="Close search results">&times;</button>
+                </div>
+
+                <div class="search-sheet-input-wrap">
+                    <svg class="search-sheet-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7"/>
+                        <path d="M20 20l-3.8-3.8"/>
+                    </svg>
+                    <input id="voucherSearchSheetInput" type="text" placeholder="Search restaurants or vouchers" autocomplete="off">
+                </div>
+
+                <div class="search-quick-title">Quick searches</div>
+                <div class="search-quick-chips">
+                    <button class="search-quick-chip" type="button" data-voucher-search-query="burger">Burger</button>
+                    <button class="search-quick-chip" type="button" data-voucher-search-query="coffee">Coffee</button>
+                    <button class="search-quick-chip" type="button" data-voucher-search-query="dessert">Dessert</button>
+                    <button class="search-quick-chip" type="button" data-voucher-search-query="drinks">Drinks</button>
+                    <button class="search-quick-chip" type="button" data-voucher-search-query="sushi">Sushi</button>
+                </div>
+
+                <div class="search-result-list" id="voucherSearchResultList"></div>
+            </div>
+        </section>
+        <nav class="bottom-nav">
+            <a class="nav-item" href="/main-menu">
+                <span class="nav-icon nav-main" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                        <path d="M3.5 10.8 12 3.8l8.5 7"/>
+                        <path d="M5.8 9.5v10.8h12.4V9.5"/>
+                        <path d="M9.4 20.3v-6.2h5.2v6.2"/>
+                    </svg>
+                </span>
+                <em>Main</em>
+            </a>
+            <a class="nav-item active" href="/voucher">
+                <span class="nav-icon nav-voucher" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                        <path d="M20.2 13.5 13.5 20.2a2.1 2.1 0 0 1-3 0l-7-7A2.1 2.1 0 0 1 2.9 11.7V5.2a2.2 2.2 0 0 1 2.2-2.2h6.5a2.1 2.1 0 0 1 1.5.6l7 7a2.1 2.1 0 0 1 .1 2.9Z"/>
+                        <circle cx="8" cy="8" r="1.45"/>
+                        <path d="M11.2 12h5.1"/>
+                        <path d="M12.9 15.1h3.4"/>
+                    </svg>
+                </span>
+                <em>Voucher</em>
+            </a>
+            <a class="nav-item" href="/map">
+                <span class="nav-icon nav-map" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                        <path d="M8.2 18.6 3.5 21V6.2l4.7-2.4 7.6 1.9 4.7-2.4v14.8l-4.7 2.4-7.6-1.9Z"/>
+                        <path d="M8.2 3.8v14.8"/>
+                        <path d="M15.8 5.7v14.8"/>
+                    </svg>
+                </span>
+                <em>Map</em>
+            </a>
+            <a class="nav-item" href="/budget">
+                <span class="nav-icon nav-budget" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                        <path d="M4.2 7.2h14.3a2.3 2.3 0 0 1 2.3 2.3v8.1a2.3 2.3 0 0 1-2.3 2.3H5.5a2.3 2.3 0 0 1-2.3-2.3V6.5a2.1 2.1 0 0 1 2.1-2.1h11.2"/>
+                        <path d="M16.2 12.1h4.6v4.5h-4.6a2.25 2.25 0 0 1 0-4.5Z"/>
+                        <circle cx="16.7" cy="14.35" r=".65"/>
+                    </svg>
+                </span>
+                <em>Budget</em>
+            </a>
+            <a class="nav-item" href="/profile">
+                <span class="nav-icon nav-profile" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                        <circle cx="12" cy="8" r="3.2"/>
+                        <path d="M5.6 20.4c.8-3.8 3.2-5.8 6.4-5.8s5.6 2 6.4 5.8"/>
+                    </svg>
+                </span>
+                <em>Profile</em>
+            </a>
+        </nav>
+    </section>
+</main>
+
+<script>
+window.vouchrCSVData = {{ vouchers|default([])|tojson }};
+
+window.filterVoucherList = function (query) {
+    const terms = String(query || "").trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const cards = Array.from(document.querySelectorAll(".voucher-list .voucher"));
+    const empty = document.getElementById("voucherSearchEmpty");
+    const aliases = {
+        "tasty-burgers": "tasty burgers burger burgers fast food",
+        "fresh-sushi": "fresh sushi japanese sushi rolls",
+        "coffee-breaks": "coffee breaks coffee cafe café drinks",
+        "sweet-treats": "sweet treats sweet dessert desserts cake waffle",
+        "mcdonalds": "mcd mcdonald mcdonalds mcdonald's burger fast food"
+    };
+    let shown = 0;
+
+    cards.forEach(function (card) {
+        const id = card.getAttribute("data-voucher-id") || "";
+        const isSearchOnly = card.getAttribute("data-search-only") === "true";
+        const haystack = [
+            id,
+            aliases[id] || "",
+            card.textContent || ""
+        ].join(" ").toLowerCase();
+
+        const shouldShow = (!terms.length && !isSearchOnly) || (terms.length && terms.every(function (term) {
+            return haystack.includes(term);
+        }));
+
+        card.style.display = shouldShow ? "grid" : "none";
+        shown += shouldShow ? 1 : 0;
+    });
+
+    if (empty) {
+        empty.style.display = shown ? "none" : "block";
+    }
+};
+
+document.addEventListener("DOMContentLoaded", function () {
+    window.filterVoucherList("");
+});
+</script>
+
+<script>
+/* Voucher Card Animation + Same-Page Voucher Details Modal */
+(function () {
+    const voucherData = {
+        "tasty-burgers": {
+            name: "Tasty Burgers",
+            logo: "/assets/voucher/hero5.png",
+            discount: "40% OFF Burger Set",
+            description: "Enjoy 40% OFF selected burger meals at participating Tasty Burgers outlets.",
+            location: "Selected outlets · Fast Food",
+            valid: "Valid until 31 May 2026",
+            terms: [
+                "Valid at selected outlets only.",
+                "Not exchangeable for cash.",
+                "Cannot be combined with other promotions."
+            ]
+        },
+        "fresh-sushi": {
+            name: "Fresh Sushi",
+            logo: "/assets/voucher/hero2.png",
+            discount: "25% OFF Sushi Rolls",
+            description: "Enjoy 25% OFF premium sushi rolls and selected Japanese meals.",
+            location: "Selected outlets · Sushi",
+            valid: "Valid until 10 June 2026",
+            terms: [
+                "Valid for selected sushi items only.",
+                "Not exchangeable for cash.",
+                "Cannot be combined with other promotions."
+            ]
+        },
+        "coffee-breaks": {
+            name: "Coffee Breaks",
+            logo: "/assets/voucher/hero3.png",
+            discount: "20% OFF Café Drinks",
+            description: "Save on coffee, tea, and selected café favourites at participating stores.",
+            location: "Selected outlets · Café",
+            valid: "Valid until 15 June 2026",
+            terms: [
+                "Valid for selected drinks only.",
+                "Not exchangeable for cash.",
+                "Cannot be combined with other promotions."
+            ]
+        },
+        "sweet-treats": {
+            name: "Sweet Treats",
+            logo: "/assets/voucher/hero1.png",
+            discount: "30% OFF Desserts",
+            description: "Enjoy dessert cravings with better savings on selected cakes, waffles, and sweet treats.",
+            location: "Selected outlets · Desserts",
+            valid: "Valid until 24 November 2026",
+            terms: [
+                "Valid for selected dessert items only.",
+                "Not exchangeable for cash.",
+                "Cannot be combined with other promotions."
+            ]
+        },
+        "mcdonalds": {
+            name: "McDonald's",
+            logo: "/assets/store/mcdonalds-logo.png",
+            discount: "15% OFF Total Bill",
+            description: "Enjoy 15% OFF your total bill at selected McDonald's outlets.",
+            location: "Selected outlets · Fast Food",
+            valid: "Valid until 31 May 2026",
+            terms: [
+                "Valid at selected outlets only.",
+                "Not exchangeable for cash.",
+                "Cannot be combined with other promotions."
+            ],
+            containLogo: true
+        }
+    };
+
+    function cleanAssetUrl(url) {
+        const value = String(url || "").trim().replace(/\\/g, "/");
+        if (!value) return "/assets/merchant/default-logo.png";
+        if (value.startsWith("http://") || value.startsWith("https://") || value.startsWith("data:")) return value;
+        if (value.startsWith("/assets/")) return value;
+        if (value.startsWith("assets/")) return "/" + value;
+        if (!value.startsWith("/")) return "/assets/merchant/" + value.split("/").pop();
+        return value;
+    }
+
+    (Array.isArray(window.vouchrCSVData) ? window.vouchrCSVData : []).forEach(function (voucher) {
+        const id = String(voucher.id || "").trim();
+        if (!id) return;
+
+        const title = String(voucher.VoucherTitle || voucher.offer || "Special Offer").trim();
+        const merchant = String(voucher.name || voucher.merchant_name || "Merchant").trim();
+        const offer = String(voucher.offer || "").trim();
+
+        voucherData[id] = {
+            name: merchant || title || "Voucher",
+            logo: cleanAssetUrl(voucher.ImageUrl || voucher.logo),
+            discount: offer && offer.toLowerCase() !== "special deal" ? offer : title,
+            description: voucher.description || ("Redeem this exclusive voucher from " + merchant + ": " + title + "."),
+            location: (voucher.Address || voucher.location || "Selected outlets") + " · Merchant Deal",
+            valid: "Valid until " + (voucher.valid || voucher.ExpiryDate || "No expiry"),
+            terms: [
+                "Valid at selected outlets only.",
+                "Not exchangeable for cash.",
+                "Cannot be combined with other promotions."
+            ]
+        };
+    });
+
+    function slugify(text) {
+        return String(text || "")
+            .toLowerCase()
+            .replace(/&/g, "and")
+            .replace(/'/g, "")
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "");
+    }
+
+    function knownId(text) {
+        const name = String(text || "").toLowerCase();
+        const map = [
+            ["tasty burger", "tasty-burgers"],
+            ["fresh sushi", "fresh-sushi"],
+            ["coffee breaks", "coffee-breaks"],
+            ["sweet treats", "sweet-treats"],
+            ["mcdonald", "mcdonalds"]
+        ];
+
+        for (const [needle, id] of map) {
+            if (name.includes(needle)) return id;
+        }
+        return "";
+    }
+
+    function getVoucherCard(element) {
+        return element.closest(
+            "[data-voucher-id], [data-id], .voucher-card, .voucher-item, .deal-card, .category-voucher-card, .search-result-card, [class*='voucher-card'], [class*='voucher-item'], article, li"
+        );
+    }
+
+    function resolveVoucherId(element) {
+        const card = getVoucherCard(element) || element;
+        const explicit =
+            card.dataset?.voucherId ||
+            card.dataset?.id ||
+            element.dataset?.voucherId ||
+            element.dataset?.id;
+
+        if (explicit) return slugify(explicit);
+
+        const title =
+            card.querySelector?.("[data-voucher-name]") ||
+            card.querySelector?.(".voucher-name") ||
+            card.querySelector?.(".voucher-title") ||
+            card.querySelector?.(".card-title") ||
+            card.querySelector?.("h2") ||
+            card.querySelector?.("h3") ||
+            card.querySelector?.("strong");
+
+        const text = title && title.textContent.trim()
+            ? title.textContent
+            : card.textContent;
+
+        return knownId(text) || slugify(text) || "mcdonalds";
+    }
+
+    const phone = document.querySelector(".phone");
+    const modal = document.getElementById("voucherModal");
+    const logoWrap = document.getElementById("modalLogoWrap");
+    const logo = document.getElementById("modalLogo");
+    const termsList = document.getElementById("modalVoucherTerms");
+
+    function fillModal(data) {
+        document.getElementById("modalVoucherName").textContent = data.name;
+        document.getElementById("modalVoucherDiscount").textContent = data.discount;
+        document.getElementById("modalVoucherDescription").textContent = data.description;
+        document.getElementById("modalVoucherLocation").textContent = data.location;
+        document.getElementById("modalVoucherValid").textContent = data.valid;
+
+        logo.src = cleanAssetUrl(data.logo);
+        logo.onerror = function () {
+            if (!this.dataset.fallback) {
+                this.dataset.fallback = "1";
+                this.src = "/assets/merchant/default-logo.png";
+            }
+        };
+        logo.alt = data.name + " voucher";
+        logoWrap.classList.toggle("contain", !!data.containLogo);
+
+        termsList.innerHTML = "";
+        data.terms.forEach(function (term) {
+            const li = document.createElement("li");
+            li.textContent = term;
+            termsList.appendChild(li);
+        });
+    }
+
+    function openVoucherDetails(element) {
+        const card = getVoucherCard(element) || element;
+        const id = resolveVoucherId(element);
+        const data = voucherData[id] || voucherData["mcdonalds"];
+        data.id = id;
+
+        card.classList.add("voucher-pressed");
+        fillModal(data);
+
+        const redeemBtn = document.getElementById("modalRedeemBtn");
+        const saveBtn = document.getElementById("modalSaveBtn");
+        redeemBtn.dataset.voucherId = id;
+        redeemBtn.dataset.voucherName = data.name;
+        redeemBtn.dataset.voucherTitle = data.discount;
+        redeemBtn.dataset.voucherDiscount = data.discount;
+        saveBtn.dataset.voucherId = id;
+        saveBtn.dataset.voucherName = data.name;
+        saveBtn.dataset.voucherTitle = data.discount;
+        saveBtn.dataset.merchantName = data.name;
+
+        setTimeout(function () {
+            modal.setAttribute("aria-hidden", "false");
+            phone.classList.add("modal-open");
+
+            requestAnimationFrame(function () {
+                modal.classList.add("active");
+            });
+        }, 90);
+    }
+
+    function closeVoucherDetails() {
+        modal.classList.remove("active", "show", "open", "visible");
+        modal.setAttribute("aria-hidden", "true");
+        modal.style.display = "";
+        phone.classList.remove("modal-open", "voucher-modal-open", "dimmed", "overlay-active");
+        document.body.classList.remove("modal-open", "voucher-modal-open", "dimmed", "overlay-active");
+    }
+
+    const searchInput = document.getElementById("voucherSearchInput");
+    const searchOverlay = document.getElementById("voucherSearchOverlay");
+    const searchCloseBtn = document.getElementById("voucherSearchCloseBtn");
+    const searchSheetInput = document.getElementById("voucherSearchSheetInput");
+    const searchTitle = document.getElementById("voucherSearchTitle");
+    const searchSubtitle = document.getElementById("voucherSearchSubtitle");
+    const searchResultList = document.getElementById("voucherSearchResultList");
+    const voucherEmpty = document.getElementById("voucherSearchEmpty");
+    const visibleVoucherCards = Array.from(document.querySelectorAll(".voucher-list .voucher"));
+
+    const searchableVouchers = Object.entries(voucherData).map(function ([id, data]) {
+        const aliases = {
+            "tasty-burgers": "burger burgers fast food",
+            "fresh-sushi": "sushi japanese roll rolls",
+            "coffee-breaks": "coffee cafe café drinks",
+            "sweet-treats": "sweet dessert desserts cake waffle",
+            "mcdonalds": "mcd mcdonald mcdonalds burger fast food"
+        };
+
+        return {
+            id,
+            ...data,
+            searchableText: [
+                id,
+                aliases[id] || "",
+                data.name,
+                data.discount,
+                data.description,
+                data.location,
+                data.valid
+            ].join(" ").toLowerCase()
+        };
+    });
+
+    function filterVisibleVouchers(query) {
+        const cleanQuery = String(query || "").trim().toLowerCase();
+        const terms = cleanQuery.split(/\s+/).filter(Boolean);
+        let visibleCount = 0;
+
+        visibleVoucherCards.forEach(function (card) {
+            const voucherId = card.dataset.voucherId || "";
+            const voucher = voucherData[voucherId] || {};
+            const aliases = {
+                "tasty-burgers": "burger burgers fast food",
+                "fresh-sushi": "sushi japanese roll rolls",
+                "coffee-breaks": "coffee cafe café drinks",
+                "sweet-treats": "sweet dessert desserts cake waffle",
+                "mcdonalds": "mcd mcdonald mcdonalds burger fast food"
+            };
+            const searchableText = [
+                voucherId,
+                aliases[voucherId] || "",
+                card.textContent,
+                voucher.name,
+                voucher.discount,
+                voucher.description,
+                voucher.location
+            ].join(" ").toLowerCase();
+
+            const isSearchOnly = card.dataset.searchOnly === "true";
+            const isMatch = (!terms.length && !isSearchOnly) || (terms.length && terms.every(function (term) {
+                return searchableText.includes(term);
+            }));
+
+            card.style.display = isMatch ? "grid" : "none";
+            if (isMatch) visibleCount += 1;
+        });
+
+        if (voucherEmpty) {
+            voucherEmpty.style.display = visibleCount ? "none" : "block";
+        }
+    }
+
+    function escapeHtml(value) {
+        return String(value || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function getSearchResults(query) {
+        const cleanQuery = String(query || "").trim().toLowerCase();
+
+        if (!cleanQuery) {
+            return searchableVouchers;
+        }
+
+        const terms = cleanQuery.split(/\s+/).filter(Boolean);
+        return searchableVouchers.filter(function (voucher) {
+            return terms.every(function (term) {
+                return voucher.searchableText.includes(term);
+            });
+        });
+    }
+
+    function renderSearchResults(query) {
+        if (!searchResultList) return;
+
+        const cleanQuery = String(query || "").trim();
+        const results = getSearchResults(cleanQuery);
+
+        searchTitle.textContent = cleanQuery ? 'Results for "' + cleanQuery + '"' : "Popular vouchers";
+        searchSubtitle.textContent = results.length + " voucher" + (results.length === 1 ? "" : "s") + " found";
+
+        if (!results.length) {
+            searchResultList.innerHTML = '<div class="search-empty">No matching vouchers found. Try burger, coffee, dessert, drinks or sushi.</div>';
+            return;
+        }
+
+        searchResultList.innerHTML = results.map(function (voucher) {
+            return `
+                <article class="voucher-search-result" data-voucher-search-id="${escapeHtml(voucher.id)}">
+                    <div class="voucher-search-logo ${voucher.containLogo ? "contain" : ""}">
+                        <img src="${escapeHtml(cleanAssetUrl(voucher.logo))}" alt="${escapeHtml(voucher.name)} logo" onerror="if(!this.dataset.fallback){this.dataset.fallback='1';this.src='/assets/merchant/default-logo.png';}">
+                    </div>
+                    <div class="voucher-search-info">
+                        <h4>${escapeHtml(voucher.name)}</h4>
+                        <p>${escapeHtml(voucher.discount)}</p>
+                        <small>${escapeHtml(voucher.location)}</small>
+                    </div>
+                    <button class="voucher-search-view" type="button">View</button>
+                </article>
+            `;
+        }).join("");
+    }
+
+    function openSearchResults(query) {
+        if (!searchOverlay) return;
+
+        const value = String(query || "").trim();
+        renderSearchResults(value);
+
+        if (searchSheetInput && searchSheetInput.value !== value) {
+            searchSheetInput.value = value;
+        }
+
+        searchOverlay.classList.add("active");
+
+        setTimeout(function () {
+            if (searchSheetInput) {
+                searchSheetInput.focus();
+                searchSheetInput.setSelectionRange(searchSheetInput.value.length, searchSheetInput.value.length);
+            }
+        }, 80);
+    }
+
+    function closeSearchResults() {
+        if (searchOverlay) {
+            searchOverlay.classList.remove("active");
+        }
+    }
+
+    function openVoucherById(voucherId) {
+        const proxy = document.createElement("button");
+        proxy.dataset.voucherId = voucherId;
+        closeSearchResults();
+        openVoucherDetails(proxy);
+    }
+
+    function applyQuickVoucherSearch(chip) {
+        if (!chip) return;
+        const query = chip.dataset.voucherSearchQuery || "";
+        if (!query) return;
+        document.querySelectorAll("[data-voucher-search-query]").forEach(function (item) {
+            item.classList.toggle("is-selected", item === chip);
+        });
+        if (searchInput) searchInput.value = query;
+        if (searchSheetInput) searchSheetInput.value = query;
+        filterVisibleVouchers(query);
+        openSearchResults(query);
+    }
+
+    if (searchInput && searchOverlay && searchResultList) {
+        let searchTimer = null;
+
+        searchInput.addEventListener("focus", function () {
+            openSearchResults(searchInput.value);
+        });
+
+        searchInput.addEventListener("click", function () {
+            openSearchResults(searchInput.value);
+        });
+
+        searchInput.addEventListener("input", function () {
+            clearTimeout(searchTimer);
+            const value = searchInput.value.trim();
+            filterVisibleVouchers(value);
+
+            searchTimer = setTimeout(function () {
+                if (value) {
+                    openSearchResults(value);
+                } else {
+                    closeSearchResults();
+                }
+            }, 120);
+        });
+
+        searchInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                openSearchResults(searchInput.value);
+            }
+
+            if (event.key === "Escape") {
+                closeSearchResults();
+                searchInput.blur();
+            }
+        });
+
+        searchSheetInput.addEventListener("input", function () {
+            const value = searchSheetInput.value;
+            if (searchInput.value !== value) {
+                searchInput.value = value;
+            }
+            filterVisibleVouchers(value);
+            renderSearchResults(value);
+        });
+
+        searchSheetInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                renderSearchResults(searchSheetInput.value);
+            }
+
+            if (event.key === "Escape") {
+                closeSearchResults();
+                searchInput.focus();
+            }
+        });
+
+        searchOverlay.addEventListener("click", function (event) {
+            if (event.target === searchOverlay) {
+                closeSearchResults();
+            }
+        });
+
+        if (searchCloseBtn) {
+            searchCloseBtn.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                closeSearchResults();
+                if (searchInput) searchInput.blur();
+            });
+        }
+
+    }
+
+    function setupSearchQuickChipDrag() {
+        const row = document.querySelector(".search-quick-chips");
+        if (!row || row.dataset.dragReady === "true") return;
+
+        row.dataset.dragReady = "true";
+        let startX = 0;
+        let startY = 0;
+        let startScrollLeft = 0;
+        let isDragging = false;
+        let pointerActive = false;
+        let blockedByDrag = false;
+        let activePointerId = null;
+        let hasPointerCapture = false;
+        let pendingTapChip = null;
+
+        row.addEventListener("pointerdown", function (event) {
+            if (event.button !== undefined && event.button !== 0) return;
+            pointerActive = true;
+            isDragging = false;
+            startX = event.clientX;
+            startY = event.clientY;
+            startScrollLeft = row.scrollLeft;
+            activePointerId = event.pointerId;
+            hasPointerCapture = false;
+            pendingTapChip = event.target.closest("[data-voucher-search-query]");
+        });
+
+        row.addEventListener("pointermove", function (event) {
+            if (!pointerActive) return;
+
+            const deltaX = event.clientX - startX;
+            const deltaY = event.clientY - startY;
+            if (Math.abs(deltaY) > 10) {
+                pendingTapChip = null;
+            }
+            if (Math.abs(deltaX) > 12) {
+                isDragging = true;
+                pendingTapChip = null;
+                row.classList.add("dragging");
+                if (!hasPointerCapture && activePointerId !== null && row.setPointerCapture) {
+                    try {
+                        row.setPointerCapture(activePointerId);
+                        hasPointerCapture = true;
+                    } catch (error) {}
+                }
+                row.scrollLeft = startScrollLeft - deltaX;
+                event.preventDefault();
+            }
+        }, { passive: false });
+
+        function endDrag(allowTap) {
+            if (isDragging) {
+                blockedByDrag = true;
+                window.setTimeout(function () {
+                    blockedByDrag = false;
+                }, 120);
+            } else if (allowTap && pendingTapChip) {
+                const tappedChip = pendingTapChip;
+                tappedChip.dataset.quickTapHandled = "true";
+                applyQuickVoucherSearch(tappedChip);
+                window.setTimeout(function () {
+                    delete tappedChip.dataset.quickTapHandled;
+                }, 140);
+            }
+
+            pointerActive = false;
+            isDragging = false;
+            activePointerId = null;
+            hasPointerCapture = false;
+            pendingTapChip = null;
+            row.classList.remove("dragging");
+        }
+
+        row.addEventListener("pointerup", function (event) {
+            endDrag(true);
+        });
+        row.addEventListener("pointerleave", function (event) {
+            endDrag(false);
+        });
+        row.addEventListener("pointercancel", function (event) {
+            endDrag(false);
+        });
+
+        row.addEventListener("click", function (event) {
+            const chip = event.target.closest("[data-voucher-search-query]");
+            if (blockedByDrag) {
+                event.preventDefault();
+                event.stopPropagation();
+                if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+                return;
+            }
+            if (!chip || !row.contains(chip)) return;
+            event.preventDefault();
+            event.stopPropagation();
+            if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+            if (chip.dataset.quickTapHandled === "true") return;
+            chip.dataset.quickTapHandled = "true";
+            applyQuickVoucherSearch(chip);
+            window.setTimeout(function () {
+                delete chip.dataset.quickTapHandled;
+            }, 90);
+        }, true);
+
+        row.addEventListener("wheel", function (event) {
+            const mostlyVertical = Math.abs(event.deltaY) >= Math.abs(event.deltaX);
+            if (!mostlyVertical) return;
+            row.scrollLeft += event.deltaY;
+            event.preventDefault();
+        }, { passive: false });
+    }
+
+    setupSearchQuickChipDrag();
+
+    function isVoucherAction(element) {
+        const button = element.closest("button, a, .tag");
+        if (!button) return false;
+        const text = (button.textContent || "").trim().toLowerCase();
+        return text.includes("view voucher");
+    }
+
+    function isBottomNav(element) {
+        return !!element.closest(".bottom-nav");
+    }
+
+    document.addEventListener("pointerdown", function (event) {
+        if (isBottomNav(event.target) || event.target.closest(".voucher-modal")) return;
+
+        const card = getVoucherCard(event.target);
+        if (card) card.classList.add("voucher-pressed");
+    }, true);
+
+    document.addEventListener("pointerup", function () {
+        document.querySelectorAll(".voucher-pressed").forEach(card => {
+            setTimeout(() => card.classList.remove("voucher-pressed"), 160);
+        });
+    }, true);
+
+    document.addEventListener("click", function (event) {
+        const searchResult = event.target.closest("[data-voucher-search-id]");
+        if (searchResult) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+            openVoucherById(searchResult.getAttribute("data-voucher-search-id"));
+            return;
+        }
+
+        const closeTarget = event.target.closest("[data-close-modal]");
+        if (closeTarget) {
+            event.preventDefault();
+            event.stopPropagation();
+            closeVoucherDetails();
+            return;
+        }
+
+        if (event.target.closest(".voucher-sheet")) return;
+
+        const nav = event.target.closest(".bottom-nav .nav-item, .bottom-nav a");
+        if (nav) {
+            const text = (nav.textContent || "").trim();
+            const routes = {
+                "Main": "/main-menu",
+                "Voucher": "/voucher",
+                "Map": "/map",
+                "Budget": "/budget",
+                "Profile": "/profile"
+            };
+
+            for (const key in routes) {
+                if (text.includes(key)) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    window.location.href = routes[key];
+                    return;
+                }
+            }
+        }
+
+        if (isBottomNav(event.target)) return;
+
+        if (isVoucherAction(event.target)) {
+            event.preventDefault();
+            event.stopPropagation();
+            openVoucherDetails(event.target);
+            return;
+        }
+
+        const card = getVoucherCard(event.target);
+        if (card) {
+            const label = (card.textContent || "").toLowerCase();
+            if (
+                label.includes("view voucher") ||
+                label.includes("tasty burgers") ||
+                label.includes("fresh sushi") ||
+                label.includes("coffee breaks") ||
+                label.includes("sweet treats") ||
+                label.includes("mcdonald")
+            ) {
+                event.preventDefault();
+                event.stopPropagation();
+                openVoucherDetails(card);
+            }
+        }
+    }, true);
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && searchOverlay && searchOverlay.classList.contains("active")) {
+            closeSearchResults();
+            return;
+        }
+
+        if (event.key === "Escape" && modal.classList.contains("active")) {
+            closeVoucherDetails();
+        }
+    });
+
+    document.getElementById("modalRedeemBtn").addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const voucherName = this.dataset.voucherName || document.getElementById("modalVoucherName").textContent || "Voucher";
+        const voucherDiscount = this.dataset.voucherDiscount || document.getElementById("modalVoucherDiscount").textContent || "Redeem Voucher";
+
+        fetch("/api/activity/redeem-voucher", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                voucher_id: this.dataset.voucherId || "",
+                voucher_name: voucherName,
+                voucher_title: this.dataset.voucherTitle || voucherDiscount,
+                merchant_name: voucherName,
+                redemption_code: voucherDiscount
+            })
+        }).catch(() => {});
+
+        closeVoucherDetails();
+
+        if (window.VouchrQR && typeof window.VouchrQR.start === "function") {
+            window.VouchrQR.start(voucherName, voucherDiscount);
+        }
+    });
+
+    document.getElementById("modalSaveBtn").addEventListener("click", function () {
+        this.textContent = "Saved ✓";
+        const voucherName = this.dataset.voucherName || document.getElementById("modalVoucherName").textContent || "Voucher";
+        fetch("/api/activity/save-voucher", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                voucher_id: this.dataset.voucherId || "",
+                voucher_name: voucherName,
+                voucher_title: this.dataset.voucherTitle || document.getElementById("modalVoucherDiscount").textContent || voucherName,
+                merchant_name: this.dataset.merchantName || voucherName
+            })
+        }).catch(() => {});
+    });
+})();
+</script>
+
+
+<script>
+/* =====================================================
+   Universal QR Redemption Modal + Close QR Code Button
+   - QR stays inside the .phone frame
+   - X closes only the QR page and keeps alert bar active
+   - Close QR Code clears QR session and hides alert bar
+===================================================== */
+(function () {
+    const existingOverlay = document.getElementById("qrRedemptionOverlay");
+    const existingBar = document.getElementById("activeQrBar");
+    if (existingOverlay) existingOverlay.remove();
+    if (existingBar) existingBar.remove();
+
+    const phoneContainer = document.querySelector(".phone") || document.body;
+
+    const style = document.createElement("style");
+    style.innerHTML = `
+        #qrRedemptionOverlay {
+            position: absolute !important;
+            inset: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
+            overflow: hidden !important;
+            background: rgba(0,0,0,.55);
+            backdrop-filter: blur(6px);
+            z-index: 9999999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity .30s ease, visibility 0s linear .30s;
+        }
+        #qrRedemptionOverlay.active { opacity: 1; visibility: visible; pointer-events: auto; transition-delay: 0s; }
+        .phone.qr-modal-open .content { filter: none !important; }
+        .qr-redemption-sheet {
+            width: min(280px, calc(100% - 22px));
+            max-height: calc(100% - 34px);
+            overflow: auto;
+            scrollbar-width: none;
+            position: relative;
+            text-align: center;
+            padding: 58px 20px 22px;
+            border-radius: 28px;
+            border: 1px solid rgba(255,116,38,.42);
+            background: radial-gradient(circle at 88% 10%, rgba(255,116,38,.12), transparent 28%), #15171e;
+            box-shadow: 0 25px 50px rgba(0,0,0,.60), 0 0 30px rgba(255,116,38,.15);
+            transform: translateY(24px) scale(.98);
+            opacity: .92;
+            transition: transform .34s cubic-bezier(.2,.85,.25,1), opacity .28s ease;
+        }
+        .qr-redemption-sheet::-webkit-scrollbar { display: none; }
+        #qrRedemptionOverlay.active .qr-redemption-sheet { transform: translateY(0) scale(1); opacity: 1; }
+        .qr-close-btn, .qr-clear-btn {
+            position: absolute; top: 12px; height: 32px; border: 0; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center;
+            transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
+        }
+        .qr-close-btn {
+            right: 12px; width: 32px; border-radius: 50%; background: rgba(255,255,255,.10);
+            color: #fff; font-size: 22px; line-height: 1;
+        }
+        .qr-clear-btn {
+            left: 12px; padding: 0 10px; border-radius: 999px; border: 1px solid rgba(255,116,38,.65);
+            background: rgba(255,116,38,.11); color: #ff7426; font-size: 10.5px; font-weight: 900;
+            letter-spacing: .1px; box-shadow: 0 0 14px rgba(255,116,38,.10);
+        }
+        .qr-close-btn:hover { background: rgba(255,116,38,.18); }
+        .qr-clear-btn:hover { background: rgba(255,116,38,.18); box-shadow: 0 0 18px rgba(255,116,38,.18); }
+        .qr-close-btn:active, .qr-clear-btn:active { transform: scale(.95); }
+        .qr-redemption-sheet h3 { margin: 0 0 5px; color: #fff; font-size: 20px; font-weight: 900; }
+        .qr-redemption-sheet p { margin: 0 0 20px; color: #8a8d93; font-size: 13px; font-weight: 700; }
+        .qr-box {
+            width: 200px; height: 200px; position: relative; display: inline-block; margin-bottom: 18px; padding: 15px;
+            border-radius: 18px; background: #fff; box-shadow: inset 0 0 10px rgba(0,0,0,.10);
+        }
+        #qrImage { width: 100%; height: 100%; object-fit: contain; transition: filter .3s ease, opacity .3s ease; }
+        #qrImage.expired, #qrImage.erased { opacity: .15; filter: grayscale(100%); }
+        #qrExpiredMsg {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; display: none;
+            color: #ef4444; font-size: 18px; font-weight: 900; text-align: center;
+        }
+        .qr-timer { margin-bottom: 5px; color: #ff7426; font-size: 32px; font-weight: 900; font-variant-numeric: tabular-nums; letter-spacing: 2px; }
+        .qr-warning { margin: 0 !important; color: #8a8d93 !important; font-size: 11.5px !important; }
+        #activeQrBar {
+            position: absolute;
+            left: 20px;
+            right: 20px;
+            bottom: calc(var(--bottom-nav-height, 78px) + 12px);
+            z-index: 72000;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            height: 48px;
+            padding: 0 16px;
+            color: #fff;
+            background: linear-gradient(145deg, #ff8a24, #f25a0b);
+            border: 1px solid rgba(255,255,255,.24);
+            border-radius: 16px;
+            box-shadow: 0 12px 28px rgba(255,116,38,.28), 0 10px 24px rgba(0,0,0,.28);
+            cursor: pointer;
+            font-size: 12.5px;
+            font-weight: 900;
+            overflow: visible;
+            transition: transform .18s ease;
+        }
+        #activeQrBar.active { display: flex; transform: none; animation: qrBarIn .25s cubic-bezier(.2,.85,.25,1) both; }
+        .phone.qr-modal-open #activeQrBar,
+        #activeQrBar.qr-hidden { display: none !important; }
+        #activeQrBar:active { transform: scale(.97); }
+        #activeQrBar.fly-top {
+            top: auto !important;
+            bottom: calc(var(--bottom-nav-height, 78px) + 12px) !important;
+            left: 20px !important;
+            right: 20px !important;
+            width: auto !important;
+            z-index: 72000 !important;
+        }
+        .redeem-bar-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .redeem-merchant-name { color: #fff; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .redeem-countdown { color: #fff; font-weight: 950; white-space: nowrap; font-variant-numeric: tabular-nums; font-size: 14px; margin-left: 12px; }
+        .redeem-live-dot {
+            width: 10px;
+            height: 10px;
+            min-width: 10px;
+            border-radius: 999px;
+            background: #111827;
+            position: relative;
+            display: inline-block;
+        }
+        .redeem-live-dot::after {
+            content: "";
+            position: absolute;
+            inset: -5px;
+            border-radius: inherit;
+            border: 2px solid rgba(17, 24, 39, 0.42);
+            animation: redeemDotPulse 1.4s infinite;
+        }
+        @keyframes redeemDotPulse { 0% { transform: scale(.75); opacity: .8; } 100% { transform: scale(1.6); opacity: 0; } }
+        @keyframes qrBarIn { from { transform: translateY(18px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    `;
+    document.head.appendChild(style);
+
+    const qrBar = document.createElement("div");
+    qrBar.id = "activeQrBar";
+    qrBar.innerHTML = `<div class="redeem-bar-left"><span class="redeem-live-dot"></span><span id="activeQrBarLabel" class="redeem-merchant-name">Active Voucher</span></div><span id="activeQrBarTimer" class="redeem-countdown">05:00</span>`;
+    phoneContainer.appendChild(qrBar);
+
+    const overlay = document.createElement("div");
+    overlay.id = "qrRedemptionOverlay";
+    overlay.setAttribute("aria-hidden", "true");
+    overlay.innerHTML = `<div class="qr-redemption-sheet" role="dialog" aria-modal="true" aria-labelledby="qrVoucherTitle"><button class="qr-clear-btn" id="qrClearBtn" type="button">Close QR Code</button><button class="qr-close-btn" id="qrCloseBtn" type="button" aria-label="Close QR code">×</button><h3 id="qrVoucherTitle">Scan to Redeem</h3><p id="qrVoucherSubtitle">Show this code to the cashier</p><div class="qr-box"><img id="qrImage" src="" alt="QR Code"><div id="qrExpiredMsg">EXPIRED</div></div><div class="qr-timer" id="qrTimer">05:00</div><p class="qr-warning">Code expires in 5 minutes for security.</p></div>`;
+    phoneContainer.appendChild(overlay);
+
+    const qrImage = document.getElementById("qrImage");
+    const qrTimer = document.getElementById("qrTimer");
+    const expiredMsg = document.getElementById("qrExpiredMsg");
+    const qrBarTimer = document.getElementById("activeQrBarTimer");
+    const qrBarLabel = document.getElementById("activeQrBarLabel");
+    const qrVoucherTitle = document.getElementById("qrVoucherTitle");
+    const qrVoucherSubtitle = document.getElementById("qrVoucherSubtitle");
+    let tickInterval = null;
+    let isQrModalOpen = false;
+
+    function safeTitle(text) { return String(text || "Voucher").trim().replace(/\s+/g, " ") || "Voucher"; }
+    function makeQrPayload(voucherName, voucherDiscount) { const uniqueString = Math.random().toString(36).substring(2, 10); return encodeURIComponent(`vouchr-redeem|${voucherName}|${voucherDiscount || "Redeem Voucher"}|${uniqueString}`); }
+    function hasActiveQR() {
+        const endTimeStr = sessionStorage.getItem("vouchr_qr_end");
+        return !!endTimeStr && parseInt(endTimeStr, 10) > Date.now();
+    }
+    function showBar() {
+        if (isQrModalOpen || !hasActiveQR()) {
+            hideBar();
+            return;
+        }
+        qrBar.classList.remove("qr-hidden");
+        qrBar.classList.add("active");
+        qrBar.style.display = "flex";
+    }
+    function hideBar() { qrBar.classList.remove("active", "fly-top"); qrBar.classList.add("qr-hidden"); qrBar.style.display = "none"; }
+    function closeModalOnly() {
+        overlay.classList.remove("active");
+        overlay.setAttribute("aria-hidden", "true");
+        isQrModalOpen = false;
+        phoneContainer.classList.remove("qr-modal-open");
+        if (hasActiveQR()) {
+            showBar();
+        } else {
+            hideBar();
+        }
+    }
+    function clearQR() {
+        sessionStorage.removeItem("vouchr_qr_data"); sessionStorage.removeItem("vouchr_qr_name"); sessionStorage.removeItem("vouchr_qr_discount"); sessionStorage.removeItem("vouchr_qr_end");
+        clearInterval(tickInterval); tickInterval = null; closeModalOnly(); hideBar();
+        qrImage.classList.add("erased"); expiredMsg.style.display = "none"; qrTimer.style.color = "#ef4444"; qrTimer.textContent = "--:--";
+    }
+    function startQR(voucherName, voucherDiscount) {
+        closeVoucherDetailLayers();
+        const name = safeTitle(voucherName); const discount = safeTitle(voucherDiscount || "Redeem Voucher");
+        const qrData = makeQrPayload(name, discount); const endTime = Date.now() + (5 * 60 * 1000);
+        sessionStorage.setItem("vouchr_qr_data", qrData); sessionStorage.setItem("vouchr_qr_name", name); sessionStorage.setItem("vouchr_qr_discount", discount); sessionStorage.setItem("vouchr_qr_end", String(endTime));
+        fetch("/api/activity/redeem-voucher", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ voucher_name: name, redemption_code: decodeURIComponent(qrData) })
+        }).catch(() => {});
+        openModal(); checkActiveQR(); hideBar();
+    }
+    function openModal() {
+        closeVoucherDetailLayers();
+        const endTime = sessionStorage.getItem("vouchr_qr_end"); const qrData = sessionStorage.getItem("vouchr_qr_data"); const vName = sessionStorage.getItem("vouchr_qr_name"); const discount = sessionStorage.getItem("vouchr_qr_discount");
+        if (!endTime || !qrData) return;
+        qrImage.src = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + qrData;
+        qrVoucherTitle.textContent = vName || "Scan to Redeem";
+        qrVoucherSubtitle.textContent = discount && discount !== "Redeem Voucher" ? `${discount} · Show this code to the cashier` : "Show this code to the cashier";
+        if (Date.now() > parseInt(endTime, 10)) { showExpired(); } else { qrImage.classList.remove("expired", "erased"); expiredMsg.style.display = "none"; qrTimer.style.color = "#ff7426"; }
+        isQrModalOpen = true;
+        phoneContainer.classList.add("qr-modal-open");
+        hideBar();
+        overlay.classList.add("active"); overlay.setAttribute("aria-hidden", "false");
+    }
+    function showExpired() { qrImage.classList.add("expired"); expiredMsg.style.display = "block"; qrTimer.style.color = "#ef4444"; qrTimer.textContent = "00:00"; sessionStorage.removeItem("vouchr_qr_end"); hideBar(); }
+    function checkActiveQR() { clearInterval(tickInterval); tick(); tickInterval = setInterval(tick, 1000); }
+    function tick() {
+        const endTimeStr = sessionStorage.getItem("vouchr_qr_end");
+        if (!endTimeStr) { hideBar(); return; }
+        const diff = parseInt(endTimeStr, 10) - Date.now();
+        if (diff <= 0) { showExpired(); return; }
+        const totalSeconds = Math.floor(diff / 1000); const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, "0"); const seconds = (totalSeconds % 60).toString().padStart(2, "0"); const timeText = `${minutes}:${seconds}`;
+        const name = sessionStorage.getItem("vouchr_qr_name") || "Active Voucher";
+        qrBarLabel.textContent = name.length > 20 ? name.slice(0, 19) + "…" : name; qrBarTimer.textContent = timeText; qrTimer.textContent = timeText;
+        if (isQrModalOpen) {
+            hideBar();
+        } else {
+            showBar();
+        }
+    }
+    function extractVoucherDetails(button) {
+        const container = button.closest(".voucher-sheet, .vouchr-fallback-sheet, .restaurant-voucher-sheet, .map-deal-sheet, .modal-content, .clean-modal-sheet, .voucher, .voucher-card, .featured-card, .near-item, [data-voucher-id], [data-map-voucher-id]");
+        const titleEl = container ? container.querySelector("h1, h2, h3, h4, .sheet-title h2, .selected-info h3") : null;
+        const discountEl = container ? container.querySelector(".sheet-offer, .tag, .card-pill, .selected-info p") : null;
+        return { name: safeTitle(button.dataset.voucherName || (titleEl && titleEl.textContent) || "Voucher"), discount: safeTitle(button.dataset.voucherDiscount || (discountEl && discountEl.textContent) || "Redeem Voucher") };
+    }
+    function closeVoucherDetailLayers() {
+        document.querySelectorAll(
+            "#voucherModal, #voucherSheetOverlay, #cleanVoucherOverlay, #globalVoucherModal, #vouchrFallbackVoucherOverlay, #mapDealPopupOverlay, #restaurantVoucherOverlay, .voucher-modal, .voucher-sheet-overlay"
+        ).forEach((overlay) => {
+            if (overlay.id === "qrRedemptionOverlay") return;
+            overlay.classList.remove("active", "show", "open", "visible");
+            overlay.setAttribute("aria-hidden", "true");
+            overlay.style.display = "";
+            overlay.style.opacity = "";
+            overlay.style.visibility = "";
+            overlay.style.pointerEvents = "";
+        });
+
+        document.querySelectorAll(".phone").forEach((phone) => {
+            phone.classList.remove("modal-open", "voucher-modal-open", "dimmed", "overlay-active");
+        });
+        document.body.classList.remove("modal-open", "voucher-modal-open", "dimmed", "overlay-active");
+    }
+    document.getElementById("qrCloseBtn").addEventListener("click", function (event) { event.preventDefault(); event.stopPropagation(); closeModalOnly(); });
+    document.getElementById("qrClearBtn").addEventListener("click", function (event) { event.preventDefault(); event.stopPropagation(); clearQR(); });
+    qrBar.addEventListener("click", openModal);
+    document.addEventListener("click", function (event) {
+        const btn = event.target.closest("button, a, .voucher-card, .featured-card, .near-item, .map-btn, #viewVoucherBtn, .view-voucher-btn");
+        if (!btn || btn.closest("#qrRedemptionOverlay")) return;
+        const text = (btn.textContent || "").trim().toLowerCase();
+        const isRedeem = btn.classList.contains("sheet-redeem") || btn.classList.contains("vouchr-fallback-redeem") || btn.classList.contains("restaurant-voucher-redeem") || btn.classList.contains("map-deal-redeem") || text === "redeem" || text.includes("redeem voucher");
+        if (isRedeem) { event.preventDefault(); event.stopPropagation(); if (event.stopImmediatePropagation) event.stopImmediatePropagation(); const details = extractVoucherDetails(btn); closeVoucherDetailLayers(); startQR(details.name, details.discount); return; }
+        const isView = text === "view" || text.includes("view voucher") || btn.id === "viewVoucherBtn" || btn.classList.contains("view-btn");
+        if (isView && qrBar.classList.contains("active")) qrBar.classList.add("fly-top");
+        const isCloseDetails = btn.classList.contains("clean-close") || btn.classList.contains("vouchr-fallback-close") || btn.classList.contains("map-deal-close") || btn.classList.contains("sheet-close") || text === "×";
+        if (isCloseDetails && !btn.closest("#qrRedemptionOverlay")) qrBar.classList.remove("fly-top");
+    }, true);
+    document.addEventListener("click", function (event) {
+        if (event.target.classList && (event.target.classList.contains("clean-modal-overlay") || event.target.id === "vouchrFallbackVoucherOverlay" || event.target.id === "mapDealPopupOverlay" || event.target.classList.contains("modal-backdrop"))) qrBar.classList.remove("fly-top");
+    });
+    window.VouchrQR = { start: startQR, open: openModal, close: closeModalOnly, clear: clearQR, erase: clearQR };
+    checkActiveQR();
+})();
+</script>
+
+</body>
+</html>

@@ -29,11 +29,11 @@ http://127.0.0.1:5001/login
 Admin dashboard:
 http://127.0.0.1:5001/dashboard
 
-Shared database:
-Both apps use vouchr.db. The database layer syncs existing CSV users, merchants, vouchers, support tickets, announcements, and admin records for the demo.
-
 Technology used:
+Python, HTML, CSV, CSS, JS, flask
 
+How system is built:
+This system follows a system architecture where frontend display with HTML/CSS/JS while the backend runs with python flask. Both apps use vouchr.db. The database layer syncs existing CSV users, merchants, vouchers, support tickets, announcements, and admin records for the demo.
 
 Support note:
 Customer support happens inside the Vouchr website through /support and the Master Admin Support page. Discord is not used.

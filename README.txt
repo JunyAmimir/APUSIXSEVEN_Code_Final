@@ -58,3 +58,6 @@ AI Review note:
 Merchants can create active vouchers freely. The local rule-based checker flags suspicious vouchers for admin review. Medium-risk vouchers stay active; high-risk vouchers can be hidden until reviewed.
 
 Do not use Live Server for the Flask app because Live Server cannot write to the project data files.
+
+AI Tools Used:
+Chatgpt, Gemini Ai, Grok

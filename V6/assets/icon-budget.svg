@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-  <title>Budget</title>
-  <path d="M4 7.2h14.2a2.3 2.3 0 0 1 2.3 2.3v8.1a2.3 2.3 0 0 1-2.3 2.3H4.8A2.8 2.8 0 0 1 2 17.1V7.9a2.8 2.8 0 0 1 2.8-2.8H17"/>
-  <path d="M16.2 11h4.3v5h-4.3a2.5 2.5 0 0 1 0-5Z"/>
-  <circle cx="16.4" cy="13.5" r="0.45" fill="currentColor" stroke="none"/>
-  <path d="M5.2 5.1 8 3h8.5a1.5 1.5 0 0 1 1.5 1.5v.6"/>
-</svg>

@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Voucher</title>
+<style>
+:root { 
+    --orange: #ff6b00;        
+    --text: #ffffff; 
+    --muted: #8a8d93;         
+    --line: rgba(255, 255, 255, 0.08); 
+    --page-bg: #1b173f;
+    
+    --app-bg: #090B10;
+    --card-bg: #15171E;
+    --header-bg: #15171E;
+    --nav-bg: #15171E;        
+}
+* { box-sizing: border-box; }
+body {
+    background: var(--page-bg); 
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif; 
+    color: var(--text);
+}
+.stage { 
+    min-height: 100vh; 
+    display: grid; 
+    place-items: center; 
+    padding: 14px; 
+}
+.phone { 
+    width: 330px; 
+    height: 708px; 
+    background: var(--app-bg); 
+    border-radius: 18px; 
+    border: 1px solid rgba(255, 255, 255, 0.08); 
+    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.35); 
+    position: relative; 
+    overflow: hidden; 
+    display: flex; 
+    flex-direction: column; 
+    margin: 0;
+}
+.main-content {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+.app-header { 
+    padding: 20px 20px 12px; 
+    background: var(--header-bg); 
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    z-index: 10; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+}
+.app-header h2 {
+    margin: 0;
+    text-align: center;
+    width: 100%;
+    padding: 0 55px; 
+    font-size: 1.15rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.app-header > a:first-child {
+    position: absolute !important;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 20;
+}
+.btn-back { 
+    position: absolute; left: 20px; color: var(--text); text-decoration: none; 
+    width: 40px; height: 40px; border-radius: 50%; 
+    display: grid; place-items: center; transition: all 0.2s; 
+}
+.btn-back:active { background: rgba(255,116,38,0.15); }
+.btn-back svg {
+    width: 24px;
+    height: 24px;
+    stroke-width: 4;
+    stroke: currentColor;
+}
+.content { 
+    flex: 1; 
+    overflow-y: auto; 
+    padding: 12px 20px 160px;
+    background: transparent; 
+    border-top: 1px solid var(--line);
+}
+.content::-webkit-scrollbar { width: 5px; }
+.content::-webkit-scrollbar-thumb { background: rgba(255,116,38,0.4); border-radius: 10px; }
+.voucher-form { display: flex; flex-direction: column; gap: 24px; }
+.input-group { 
+    background: var(--card-bg); 
+    border: 1px solid var(--line); 
+    border-radius: 22px; 
+    padding: 15px 15px 22px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+    position: relative;
+}
+.input-group::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 22px;
+    background: linear-gradient(145deg, rgba(255,116,38,0.06), transparent);
+    pointer-events: none;
+}
+label { font-size: 0.78rem; color: var(--muted); font-weight: 600; margin-bottom: 8px; display: block; }
+input, select { 
+    width: 100%; 
+    background: rgba(255,255,255,0.03); 
+    border: 1px solid var(--line); 
+    border-radius: 9999px; 
+    padding: 15px 22px; 
+    color: var(--text); 
+    font-size: 0.97rem; 
+    transition: all 0.25s ease;
+}
+input:focus, select:focus { 
+    outline: none; 
+    border-color: var(--orange); 
+    background: rgba(255,107,0,0.05);
+}
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('/assets/merchant/icon-arrow-downwards.svg');
+    background-position: right 22px center;
+    background-repeat: no-repeat;
+    background-size: 20px;
+    padding-right: 52px;
+}
+select option {
+    color: #000000;
+    background: #ffffff;
+}
+.image-preview { 
+    width: 100%; 
+    height: 192px;           
+    border-radius: 22px; 
+    background: #15171E; 
+    border: 3px dashed var(--orange); 
+    display: grid; 
+    place-items: center; 
+    overflow: hidden; 
+    margin-top: 12px;
+    position: relative;
+    box-shadow: inset 0 4px 14px rgba(0,0,0,0.4); 
+}
+.image-preview span { 
+    color: var(--muted); 
+    font-size: 0.95rem; 
+    text-align: center;
+    padding: 0 40px;
+    line-height: 1.45;
+}
+.image-preview img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    border-radius: 19px; 
+    display: none; 
+}
+.image-preview .clear-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    z-index: 10;
+    font-size: 18px;
+    line-height: 1;
+}
+.image-preview.has-image .clear-btn {
+    display: flex;
+}
+.select-wrapper {
+    position: relative;
+}
+.select-wrapper {
+    position: relative;
+}
+.select-wrapper select {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: none !important;
+    padding-right: 52px !important;
+}
+.select-wrapper::after {
+    content: '';
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    background: url('/assets/merchant/icon-arrow-downwards.svg') no-repeat center;
+    background-size: 16px;
+    pointer-events: none;
+    z-index: 0;
+}
+.btn-primary { 
+    background: var(--orange); 
+    color: white; 
+    border: none; 
+    border-radius: 9999px; 
+    padding: 16px; 
+    font-size: 1.05rem; 
+    font-weight: 700; 
+    width: 100%; 
+    cursor: pointer; 
+    box-shadow: 0 8px 20px rgba(255, 107, 0, 0.25);
+    transition: all 0.2s ease;
+}
+.btn-primary:hover {
+    background: #ff8533;
+    box-shadow: 0 10px 25px rgba(255, 107, 0, 0.4);
+    transform: translateY(-2px);
+}
+.btn-primary:active { transform: scale(0.96); }
+.bottom-nav { 
+    position: absolute; 
+    bottom: 0; left: 0; right: 0; 
+    display: flex; 
+    justify-content: space-between; 
+    padding: 6px 12px 8px; 
+    background: rgba(21, 23, 30, 0.96); 
+    backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    z-index: 120;
+}
+
+.nav-item { 
+    position: relative;
+    overflow: hidden;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+    flex: 1; 
+    gap: 2px; 
+    color: var(--muted); 
+    text-decoration: none; 
+    font-size: 0.72rem; 
+    padding: 4px 0; 
+    border-radius: 12px; 
+    border: 1px solid transparent;
+    isolation: isolate;
+    transition: color 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease, transform 0.28s ease;
+}
+
+.nav-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgba(255,107,0,0.22), rgba(255,107,0,0.08));
+    opacity: 0;
+    transition: opacity 0.28s ease;
+    z-index: -1;
+}
+
+.nav-item span,
+.nav-icon {
+    position: relative;
+    z-index: 1;
+}
+
+.nav-icon {
+    width: 22px; 
+    height: 22px;
+    transition: transform 0.28s ease, filter 0.28s ease;
+    filter: brightness(0.75);
+}
+
+.nav-item:hover,
+.nav-item.active { 
+    color: var(--orange); 
+    border-color: #ff8a1f;
+    box-shadow: 0 0 14px rgba(255, 107, 0, 0.35), inset 0 0 10px rgba(255, 107, 0, 0.10);
+    transform: translateY(-2px); 
+}
+
+.nav-item:hover::before,
+.nav-item.active::before {
+    opacity: 1;
+}
+
+.nav-item:hover .nav-icon,
+.nav-item.active .nav-icon {
+    transform: scale(1.15);
+    filter: invert(51%) sepia(98%) saturate(1987%) hue-rotate(359deg) brightness(103%) contrast(105%) drop-shadow(0 0 7px rgba(255,107,0,0.75));
+}
+@keyframes naturalFadeSlideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(25px); /* Shorter travel distance feels more natural */
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.input-group, .btn-primary {
+    animation: naturalFadeSlideUp 0.4s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+    opacity: 0;
+}
+.voucher-form > :nth-child(1) { animation-delay: 0.05s; }
+.voucher-form > :nth-child(2) { animation-delay: 0.10s; }
+.voucher-form > :nth-child(3) { animation-delay: 0.15s; }
+.voucher-form > :nth-child(4) { animation-delay: 0.20s; }
+.voucher-form > :nth-child(5) { animation-delay: 0.25s; }
+</style>
+<link rel="stylesheet" href="/assets/customer_phone_frame.css">
+</head>
+<body>
+
+<div class="stage">
+    <div class="phone merchant-phone">
+        <header class="app-header">
+            <a href="/merchant-main-menu" class="btn-back">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 12H5M12 19L5 12L12 5" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+            <h2>Create New Voucher</h2>
+        </header>
+
+        <main class="content">
+            <form class="voucher-form" method="POST" action="/create" enctype="multipart/form-data">
+                
+                <div class="input-group">
+                    <label>Voucher Title</label>
+                    <input type="text" id="voucherTitle" name="title" 
+                           placeholder="Ex: RM5 Off Combo Set" required>
+                </div>
+
+                <div class="input-group">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin: 5px 0;">
+                        <label style="font-weight:700; margin:0;">Voucher Artwork</label>
+                        <button type="button" onclick="refreshImage()" style="background:none; border:none; color:var(--orange); font-weight:700; display:flex; align-items:center; gap:6px; cursor:pointer;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>
+                            Generate AI
+                        </button>
+                    </div>
+
+                    <div class="image-preview" id="imagePreviewBox">
+                        <span>No image selected</span>
+                        <img id="generatedImg" src="" alt="Voucher Image">
+                        <button type="button" class="clear-btn" onclick="clearImage()">×</button>
+                    </div>
+                    <input type="hidden" name="image_url" id="imageUrlInput" value="">
+                    <button type="button" onclick="document.getElementById('imageUpload').click()" style="width:100%;margin-top:12px;padding:14px;background:rgba(255,255,255,0.05);border:1px dashed var(--line);border-radius:14px;color:var(--text);display:flex;align-items:center;justify-content:center;gap:8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Or Upload Your Own Photo
+                    </button>
+                    <input type="file" id="imageUpload" name="voucher_image" accept="image/*" style="display:none;" onchange="previewUploadedImage(this)">
+                </div>
+
+                <div class="input-group">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+                        <label style="margin:0;">Discount Details</label>
+                        <small id="discountHelp" style="color:var(--orange);font-size:0.68rem;line-height:1.2;font-weight:700;">
+                            Ex: 20% off, RM5 off
+                        </small>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1.2fr 0.8fr;gap:12px;align-items:end;">
+                        <div>
+                            <label style="font-size:0.72rem;">Value</label>
+                            <input type="number" id="discountValue" name="value" placeholder="Ex: 20" min="1" required>
+                        </div>
+                        <div>
+                            <label style="font-size:0.72rem;">Type</label>
+                            <div class="select-wrapper">
+                                <select name="discount_type" id="discountType" required onchange="updateDiscountHelper()">
+                                    <option value="percent">%</option>
+                                    <option value="fixed">RM</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Total Supply</label>
+                    <input type="number" name="supply" placeholder="e.g. 100" required>
+                </div>
+                <div class="input-group">
+                    <label>Expiry Date</label>
+                    <input type="date" name="expiration" required style="color-scheme: dark;">
+                </div>
+                <button type="submit" class="btn-primary">Create Voucher</button>
+            </form>
+        </main>
+
+        <nav class="bottom-nav">
+            <a href="/merchant-main-menu" class="nav-item">
+                <img src="/assets/nav_icon/icon-main-menu.svg" class="nav-icon" alt="Home">
+                <span>Home</span>
+            </a>
+            <a href="/create" class="nav-item active">
+                <img src="/assets/nav_icon/icon-create.svg" class="nav-icon" alt="Create">
+                <span>Create</span>
+            </a>
+            <a href="/merchant-profile" class="nav-item">
+                <img src="/assets/nav_icon/icon-profile.svg" class="nav-icon" alt="You">
+                <span>You</span>
+            </a>
+        </nav>
+    </div>
+</div>
+
+<script>
+    function updateDiscountHelper() {
+        const discountType = document.getElementById('discountType');
+        const discountValue = document.getElementById('discountValue');
+        const discountHelp = document.getElementById('discountHelp');
+
+        if (!discountType || !discountValue || !discountHelp) return;
+
+        if (discountType.value === 'percent') {
+            discountValue.placeholder = 'Example: 20';
+            discountValue.max = '100';
+        } else {
+            discountValue.placeholder = 'Example: 5';
+            discountValue.removeAttribute('max');
+        }
+
+        discountHelp.textContent = 'Ex: 20% off, RM5 off';
+    }
+
+    document.addEventListener('DOMContentLoaded', updateDiscountHelper);
+
+    let generateAiTapCount = 0;
+    let generateAiRequestId = 0;
+    let generateAiAbortController = null;
+
+    // Your file is a JPG, so use .jpg first. .jpeg is only a backup.
+    const DRUMSTICK_IMAGE_URLS = [
+        '/assets/drumstick.jpg',
+        '/assets/drumstick.jpeg'
+    ];
+
+    function setVoucherPreviewImage(imageUrl, saveUrl) {
+        const imgElement = document.getElementById('generatedImg');
+        const previewBox = document.getElementById('imagePreviewBox');
+        const urlInput = document.getElementById('imageUrlInput');
+        const textBox = previewBox.querySelector('span');
+
+        imgElement.onload = () => {
+            textBox.style.display = 'none';
+            imgElement.style.display = 'block';
+            previewBox.classList.add('has-image');
+        };
+
+        imgElement.onerror = () => {
+            textBox.style.display = 'block';
+            textBox.textContent = `Could not find ${saveUrl}. Check that the file is inside the assets folder.`;
+            imgElement.style.display = 'none';
+            previewBox.classList.remove('has-image');
+            urlInput.value = '';
+        };
+
+        textBox.style.display = 'none';
+        imgElement.style.display = 'block';
+        previewBox.classList.add('has-image');
+        imgElement.src = `${imageUrl}?force=${Date.now()}`;
+        urlInput.value = saveUrl || imageUrl;
+    }
+
+    function forceDrumstickPreview() {
+        const imgElement = document.getElementById('generatedImg');
+        const previewBox = document.getElementById('imagePreviewBox');
+        const urlInput = document.getElementById('imageUrlInput');
+        const textBox = previewBox.querySelector('span');
+        let currentIndex = 0;
+
+        function tryNextDrumstickPath() {
+            const path = DRUMSTICK_IMAGE_URLS[currentIndex];
+
+            imgElement.onload = () => {
+                textBox.style.display = 'none';
+                imgElement.style.display = 'block';
+                previewBox.classList.add('has-image');
+                urlInput.value = path;
+            };
+
+            imgElement.onerror = () => {
+                currentIndex += 1;
+                if (currentIndex < DRUMSTICK_IMAGE_URLS.length) {
+                    tryNextDrumstickPath();
+                    return;
+                }
+
+                textBox.style.display = 'block';
+                textBox.textContent = 'Could not find /assets/drumstick.jpg. Rename your image to drumstick.jpg and put it inside the assets folder.';
+                imgElement.style.display = 'none';
+                previewBox.classList.remove('has-image');
+                urlInput.value = '';
+            };
+
+            textBox.style.display = 'none';
+            imgElement.style.display = 'block';
+            previewBox.classList.add('has-image');
+            imgElement.src = `${path}?force=${Date.now()}`;
+            urlInput.value = path;
+        }
+
+        tryNextDrumstickPath();
+    }
+
+    function stopCurrentAiGeneration() {
+        generateAiRequestId += 1;
+
+        if (generateAiAbortController) {
+            generateAiAbortController.abort();
+            generateAiAbortController = null;
+        }
+
+        const imgElement = document.getElementById('generatedImg');
+        imgElement.onload = null;
+        imgElement.onerror = null;
+    }
+
+    function showAiGeneratingMessage() {
+        const previewBox = document.getElementById('imagePreviewBox');
+        const textBox = previewBox.querySelector('span');
+
+        textBox.style.display = 'block';
+        textBox.innerHTML = `<div style="display:flex;align-items:center;gap:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+            </svg>
+            Ai generating.....
+        </div>`;
+    }
+
+    async function refreshImage() {
+        const title = document.getElementById('voucherTitle').value.trim();
+        const imgElement = document.getElementById('generatedImg');
+        const previewBox = document.getElementById('imagePreviewBox');
+        const urlInput = document.getElementById('imageUrlInput');
+        const textBox = previewBox.querySelector('span');
+
+        if (!title) {
+            alert("Please type a Voucher Title first so the AI knows what food to generate.");
+            return;
+        }
+
+        generateAiTapCount += 1;
+
+        // 3rd tap: force the local chicken drumstick image and stop all active AI work.
+        if (generateAiTapCount === 3) {
+            stopCurrentAiGeneration();
+            forceDrumstickPreview();
+            return;
+        }
+
+        // 4th tap: continue AI generation again and restart the tap cycle.
+        if (generateAiTapCount >= 4) {
+            generateAiTapCount = 1;
+        }
+
+        stopCurrentAiGeneration();
+        const thisRequestId = generateAiRequestId;
+        generateAiAbortController = new AbortController();
+
+        showAiGeneratingMessage();
+        imgElement.style.display = 'none';
+        imgElement.src = '';
+        urlInput.value = '';
+        previewBox.classList.remove('has-image');
+
+        try {
+            const response = await fetch('/api/generate-voucher-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title }),
+                signal: generateAiAbortController.signal
+            });
+
+            const data = await response.json();
+
+            if (thisRequestId !== generateAiRequestId) return;
+
+            if (!data.success || !data.image_url) {
+                throw new Error(data.error || 'No image URL returned');
+            }
+
+            const imageUrl = data.image_url + '&t=' + Date.now();
+
+            imgElement.onload = () => {
+                if (thisRequestId !== generateAiRequestId) return;
+                textBox.style.display = 'none';
+                imgElement.style.display = 'block';
+                previewBox.classList.add('has-image');
+            };
+
+            imgElement.onerror = () => {
+                if (thisRequestId !== generateAiRequestId) return;
+                textBox.style.display = 'block';
+                textBox.textContent = 'AI image is slow. Click Generate AI again or upload your own photo.';
+                imgElement.style.display = 'none';
+                previewBox.classList.remove('has-image');
+                urlInput.value = '';
+            };
+
+            imgElement.src = imageUrl;
+            urlInput.value = imageUrl;
+
+            setTimeout(() => {
+                if (thisRequestId !== generateAiRequestId) return;
+                if (!previewBox.classList.contains('has-image')) {
+                    textBox.textContent = 'Ai generating.....';
+                }
+            }, 1200);
+
+        } catch (error) {
+            if (error.name === 'AbortError') return;
+            if (thisRequestId !== generateAiRequestId) return;
+
+            textBox.style.display = 'block';
+            textBox.textContent = 'Could not start AI image generation. Please try again or upload your own photo.';
+            imgElement.style.display = 'none';
+            imgElement.src = '';
+            urlInput.value = '';
+            previewBox.classList.remove('has-image');
+        }
+    }
+
+    function previewUploadedImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgElement = document.getElementById('generatedImg');
+                const previewBox = document.getElementById('imagePreviewBox');
+                
+                previewBox.querySelector('span').style.display = 'none';
+                imgElement.style.display = 'block';
+                imgElement.src = e.target.result;
+                document.getElementById('imageUrlInput').value = "";
+                previewBox.classList.add('has-image');
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // NEW: Clear image function
+    function clearImage() {
+        const previewBox = document.getElementById('imagePreviewBox');
+        const imgElement = document.getElementById('generatedImg');
+        const urlInput = document.getElementById('imageUrlInput');
+        const fileInput = document.getElementById('imageUpload');
+
+        // Reset everything
+        previewBox.classList.remove('has-image');
+        imgElement.style.display = 'none';
+        imgElement.src = '';
+        urlInput.value = '';
+        fileInput.value = '';                    // clears the file input
+        previewBox.querySelector('span').style.display = 'block';
+        previewBox.querySelector('span').textContent = 'No image selected';
+    }
+</script>
+</body>
+</html>

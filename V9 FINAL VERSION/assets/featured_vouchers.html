@@ -1,0 +1,332 @@
+<!-- Featured Vouchers Component -->
+<style>
+.featured-component {
+    margin-top: 4px;
+}
+
+.featured-component .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 4px 0 18px;
+}
+
+.featured-component .section-head h3 {
+    margin: 0;
+    font-size: 19px;
+    letter-spacing: -.3px;
+    color: #f7f8fb;
+}
+
+.featured-component .section-head a {
+    color: #c3c8d4;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.featured-component .featured-row {
+    --voucher-card-width: 176px;
+    --voucher-card-height: 220px;
+
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 8px 2px 20px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scroll-behavior: smooth;
+    cursor: grab;
+    user-select: none;
+    touch-action: pan-x;
+}
+
+.featured-component .featured-row::-webkit-scrollbar {
+    display: none;
+}
+
+.featured-component .featured-row.is-dragging {
+    cursor: grabbing;
+    scroll-snap-type: none;
+    scroll-behavior: auto;
+}
+
+.featured-component .featured-row.is-dragging .voucher-poster-card,
+.featured-component .featured-row.is-dragging .voucher-placeholder {
+    animation-play-state: paused !important;
+    transition: none !important;
+}
+
+.featured-component .voucher-poster-card {
+    position: relative;
+    flex: 0 0 var(--voucher-card-width);
+    width: var(--voucher-card-width);
+    min-width: var(--voucher-card-width);
+    max-width: var(--voucher-card-width);
+    height: var(--voucher-card-height);
+    min-height: var(--voucher-card-height);
+    max-height: var(--voucher-card-height);
+
+    scroll-snap-align: start;
+    border: none;
+    outline: none;
+    padding: 0;
+    margin: 0;
+    border-radius: 20px;
+    overflow: hidden;
+    background: transparent;
+    cursor: pointer;
+
+    animation:
+        voucherEnter .48s cubic-bezier(.2, .85, .25, 1) both,
+        featuredVoucherFloat 6s ease-in-out 1s infinite;
+    transition: filter .22s ease, transform .22s ease;
+    will-change: transform;
+}
+
+.featured-component .voucher-poster-card:nth-child(2) {
+    animation-delay: .08s, 1.25s;
+}
+
+.featured-component .voucher-poster-card:hover {
+    filter: brightness(1.06) saturate(1.04);
+}
+
+.featured-component .voucher-poster-card:active {
+    transform: scale(.975);
+}
+
+.featured-component .voucher-poster-card img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 20px;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.featured-component .voucher-poster-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    background: linear-gradient(
+        115deg,
+        transparent 0%,
+        transparent 36%,
+        rgba(255,255,255,.18) 47%,
+        transparent 58%,
+        transparent 100%
+    );
+    transform: translateX(-120%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.featured-component .voucher-poster-card:hover::after {
+    animation: featuredVoucherShine .85s ease;
+}
+
+.featured-component .voucher-placeholder {
+    flex: 0 0 var(--voucher-card-width);
+    width: var(--voucher-card-width);
+    min-width: var(--voucher-card-width);
+    max-width: var(--voucher-card-width);
+    height: var(--voucher-card-height);
+    min-height: var(--voucher-card-height);
+    max-height: var(--voucher-card-height);
+
+    scroll-snap-align: start;
+    border-radius: 20px;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 75% 18%, rgba(255,116,38,.16), transparent 30%),
+        linear-gradient(180deg, rgba(10,14,22,.98), rgba(9,17,31,.98));
+    border: 1px solid rgba(255,255,255,.10);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #8e97ab;
+    font-size: 13px;
+    line-height: 1.35;
+    padding: 22px;
+    box-sizing: border-box;
+    cursor: pointer;
+    animation:
+        voucherEnter .48s cubic-bezier(.2, .85, .25, 1) .16s both,
+        featuredVoucherFloat 6s ease-in-out 1.5s infinite;
+}
+
+@keyframes voucherEnter {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(.97);
+        filter: blur(3px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes featuredVoucherFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-2px);
+    }
+}
+
+@keyframes featuredVoucherShine {
+    0% {
+        transform: translateX(-120%);
+        opacity: 0;
+    }
+    25% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+}
+</style>
+
+<section class="featured-component">
+    <div class="section-head">
+        <h3>Featured Vouchers</h3>
+        <a href="/voucher">See All ›</a>
+    </div>
+
+    <section class="featured-row" id="featuredVoucherSlider" data-moved="false">
+        <article
+            class="voucher-poster-card"
+            onclick="if(this.parentElement.dataset.moved === 'true'){return;} window.openVoucherModal('good-burger');"
+            aria-label="Open The Good Burger voucher"
+        >
+            <img src="/assets/voucher/good-burger-featured-card-fixed.png" alt="The Good Burger featured voucher">
+        </article>
+
+        <article
+            class="voucher-poster-card"
+            onclick="if(this.parentElement.dataset.moved === 'true'){return;} window.openVoucherModal('pastamania');"
+            aria-label="Open Pastamania voucher"
+        >
+            <img src="/assets/voucher/pastamania-featured-card-fixed.png" alt="Pastamania featured voucher">
+        </article>
+
+        <article
+            class="voucher-placeholder"
+            onclick="if(this.parentElement.dataset.moved === 'true'){return;} window.location.href = '/voucher';"
+            aria-label="Open more vouchers"
+        >
+            More featured vouchers coming soon
+        </article>
+    </section>
+</section>
+
+<script>
+(function () {
+    const slider = document.getElementById("featuredVoucherSlider");
+    if (!slider) return;
+
+    let isDragging = false;
+    let startX = 0;
+    let scrollStart = 0;
+    let lastX = 0;
+    let lastTime = 0;
+    let velocity = 0;
+    let glideFrame = null;
+
+    function setMoved(value) {
+        slider.dataset.moved = value ? "true" : "false";
+    }
+
+    function stopGlide() {
+        if (glideFrame) {
+            cancelAnimationFrame(glideFrame);
+            glideFrame = null;
+        }
+    }
+
+    function beginDrag(event) {
+        stopGlide();
+
+        isDragging = true;
+        setMoved(false);
+
+        startX = event.clientX;
+        scrollStart = slider.scrollLeft;
+        lastX = event.clientX;
+        lastTime = performance.now();
+        velocity = 0;
+
+        slider.classList.add("is-dragging");
+
+        if (slider.setPointerCapture) {
+            slider.setPointerCapture(event.pointerId);
+        }
+    }
+
+    function moveDrag(event) {
+        if (!isDragging) return;
+
+        const now = performance.now();
+        const distance = event.clientX - startX;
+
+        if (Math.abs(distance) > 3) {
+            event.preventDefault();
+            setMoved(true);
+            slider.scrollLeft = scrollStart - distance;
+        }
+
+        const deltaTime = Math.max(now - lastTime, 1);
+        const deltaX = lastX - event.clientX;
+        const instantVelocity = (deltaX / deltaTime) * 16;
+
+        velocity = velocity * 0.82 + instantVelocity * 0.18;
+        lastX = event.clientX;
+        lastTime = now;
+    }
+
+    function endDrag() {
+        if (!isDragging) return;
+
+        isDragging = false;
+        slider.classList.remove("is-dragging");
+
+        let currentVelocity = velocity;
+
+        function glide() {
+            if (Math.abs(currentVelocity) < 0.12) {
+                setTimeout(function () {
+                    setMoved(false);
+                }, 120);
+                glideFrame = null;
+                return;
+            }
+
+            slider.scrollLeft += currentVelocity;
+            currentVelocity *= 0.92;
+            glideFrame = requestAnimationFrame(glide);
+        }
+
+        glideFrame = requestAnimationFrame(glide);
+    }
+
+    slider.addEventListener("pointerdown", beginDrag);
+    slider.addEventListener("pointermove", moveDrag);
+    slider.addEventListener("pointerup", endDrag);
+    slider.addEventListener("pointercancel", endDrag);
+    slider.addEventListener("pointerleave", endDrag);
+})();
+</script>

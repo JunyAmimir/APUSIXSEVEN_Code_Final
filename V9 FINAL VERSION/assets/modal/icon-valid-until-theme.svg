@@ -1,0 +1,21 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Valid until">
+  <defs>
+    <filter id="orangeSoftGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.2" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 1  0 1 0 0 .45  0 0 1 0 .10  0 0 0 .42 0"/>
+      <feBlend in="SourceGraphic"/>
+    </filter>
+  </defs>
+
+  <rect x="13" y="16" width="38" height="35" rx="8" stroke="#A3A9BA" stroke-width="2.6"/>
+  <path d="M13 27H51" stroke="#A3A9BA" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M23 12.5V20.5" stroke="#FF7426" stroke-width="3.8" stroke-linecap="round" filter="url(#orangeSoftGlow)"/>
+  <path d="M41 12.5V20.5" stroke="#FF7426" stroke-width="3.8" stroke-linecap="round" filter="url(#orangeSoftGlow)"/>
+
+  <rect x="21" y="34" width="4.2" height="4.2" rx="1.3" fill="#747B8D"/>
+  <rect x="30" y="34" width="4.2" height="4.2" rx="1.3" fill="#747B8D"/>
+  <rect x="39" y="34" width="4.2" height="4.2" rx="1.3" fill="#747B8D"/>
+  <rect x="21" y="42" width="4.2" height="4.2" rx="1.3" fill="#747B8D"/>
+
+  <path d="M31 44L34.2 47.2L43 38.2" stroke="#FF7426" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" filter="url(#orangeSoftGlow)"/>
+</svg>

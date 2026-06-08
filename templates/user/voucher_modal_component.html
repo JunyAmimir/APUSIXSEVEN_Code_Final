@@ -1,0 +1,562 @@
+<!-- Voucher Detail Bottom Sheet Modal -->
+<style>
+.voucher-sheet-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    overflow: hidden;
+    background: rgba(0, 0, 0, .66);
+    backdrop-filter: blur(10px);
+}
+
+.voucher-sheet-overlay.active {
+    display: flex;
+}
+
+.voucher-sheet {
+    width: calc(100% - 24px);
+    max-width: 390px;
+    max-height: calc(100% - 48px);
+    overflow-y: auto;
+    border-radius: 28px 28px 0 0;
+    background:
+        radial-gradient(circle at 82% 6%, rgba(255,116,38,.12), transparent 24%),
+        radial-gradient(circle at 12% 14%, rgba(255,255,255,.055), transparent 20%),
+        linear-gradient(180deg, #111821 0%, #080d13 100%);
+    border: 1px solid rgba(255,255,255,.13);
+    border-bottom: 0;
+    color: #f7f8fb;
+    padding: 12px 18px 26px;
+    box-shadow: 0 -22px 44px rgba(0,0,0,.52);
+    transform: translateY(110%);
+    animation: voucherSheetUp .32s cubic-bezier(.2,.85,.25,1) forwards;
+}
+
+.voucher-sheet::-webkit-scrollbar {
+    width: 0;
+}
+
+.voucher-sheet-handle {
+    width: 48px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.28);
+    margin: 0 auto 14px;
+}
+
+.voucher-sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-bottom: 8px;
+}
+
+.voucher-sheet-close {
+    width: 38px;
+    height: 38px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 50%;
+    background: rgba(255,255,255,.06);
+    color: #f7f8fb;
+    font-size: 25px;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform .18s ease, background .18s ease;
+}
+
+.voucher-sheet-close:hover {
+    background: rgba(255,255,255,.10);
+    transform: scale(1.04);
+}
+
+.voucher-sheet-top {
+    display: grid;
+    grid-template-columns: 82px 1fr;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.voucher-sheet-logo {
+    width: 82px;
+    height: 82px;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #fff;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 12px 22px rgba(0,0,0,.32);
+}
+
+.voucher-sheet-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.voucher-sheet-logo.contain img {
+    object-fit: contain;
+    padding: 6px;
+}
+
+.voucher-sheet-title h2 {
+    margin: 0 0 6px;
+    font-size: 23px;
+    line-height: 1.08;
+    letter-spacing: -.35px;
+}
+
+.voucher-sheet-title p {
+    margin: 0 0 11px;
+    color: #ff7426;
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.voucher-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.08);
+    color: #d7dce7;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.voucher-section-title {
+    margin: 0 0 10px;
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.voucher-about {
+    margin: 0 0 22px;
+    color: #c7ccd8;
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.voucher-info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 23px;
+}
+
+.voucher-info-box {
+    min-height: 106px;
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 14px;
+    background:
+        radial-gradient(circle at 75% 10%, rgba(255,255,255,.07), transparent 30%),
+        rgba(255,255,255,.045);
+    padding: 13px 9px;
+    text-align: center;
+}
+
+.voucher-info-icon {
+    font-size: 23px;
+    margin-bottom: 10px;
+}
+
+.voucher-info-label {
+    color: #a3a9ba;
+    font-size: 11.5px;
+    margin-bottom: 8px;
+}
+
+.voucher-info-value {
+    font-size: 12.8px;
+    line-height: 1.35;
+    font-weight: 900;
+    color: #f7f8fb;
+}
+
+.voucher-divider {
+    height: 1px;
+    background: rgba(255,255,255,.10);
+    margin: 2px 0 18px;
+}
+
+.voucher-terms-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.voucher-terms-head h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.voucher-terms-head span {
+    color: #d8dde8;
+    font-size: 18px;
+}
+
+.voucher-terms {
+    margin: 0 0 24px;
+    padding-left: 18px;
+    color: #c2c8d4;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.voucher-terms li {
+    margin-bottom: 7px;
+}
+
+.voucher-claim-btn {
+    width: 100%;
+    height: 56px;
+    border: 0;
+    border-radius: 14px;
+    background: linear-gradient(145deg, #ff8a24, #f25a0b);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: -.1px;
+    cursor: pointer;
+    box-shadow:
+        0 12px 24px rgba(255,116,38,.22),
+        inset 0 1px 0 rgba(255,255,255,.20);
+    transition: transform .18s ease, filter .18s ease;
+}
+
+.voucher-claim-btn:active {
+    transform: scale(.98);
+    filter: brightness(.95);
+}
+
+body.voucher-sheet-open {
+    overflow: hidden;
+}
+
+@keyframes voucherSheetUp {
+    from {
+        transform: translateY(110%);
+        opacity: .5;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 430px) {
+    .voucher-sheet {
+        width: 100vw;
+    }
+}
+
+/* Professional SVG icons for voucher info boxes */
+.voucher-info-svg {
+    width: 34px;
+    height: 34px;
+    display: block;
+    margin: 0 auto 10px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 8px rgba(255,116,38,.12));
+}
+
+.voucher-info-box:hover .voucher-info-svg {
+    filter: drop-shadow(0 0 12px rgba(255,116,38,.20));
+    transform: translateY(-1px);
+}
+
+.voucher-info-box {
+    transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+
+.voucher-info-box:hover {
+    border-color: rgba(255,116,38,.22);
+    background:
+        radial-gradient(circle at 75% 10%, rgba(255,116,38,.08), transparent 30%),
+        rgba(255,255,255,.052);
+    transform: translateY(-1px);
+}
+
+</style>
+
+<div class="voucher-sheet-overlay" id="voucherSheetOverlay" onclick="if(event.target === this) closeVoucherModal();">
+    <section class="voucher-sheet" role="dialog" aria-modal="true" aria-label="Voucher details">
+        <div class="voucher-sheet-handle"></div>
+
+        <header class="voucher-sheet-header">
+            <button class="voucher-sheet-close" type="button" onclick="closeVoucherModal()" aria-label="Close voucher details">×</button>
+        </header>
+
+        <div class="voucher-sheet-top">
+            <div class="voucher-sheet-logo" id="voucherSheetLogoWrap">
+                <img id="voucherSheetLogo" src="/assets/store/mcdonalds-logo.png" alt="Voucher logo">
+            </div>
+
+            <div class="voucher-sheet-title">
+                <h2 id="voucherSheetName">McDonald's</h2>
+                <p id="voucherSheetOffer">15% OFF Total Bill</p>
+                <span class="voucher-chip" id="voucherSheetCategory">🍴 Fast Food</span>
+            </div>
+        </div>
+
+        <h3 class="voucher-section-title">About this voucher</h3>
+        <p class="voucher-about" id="voucherSheetAbout">
+            Enjoy this voucher at selected outlets. Limited time only.
+        </p>
+
+        <div class="voucher-info-grid">
+            <div class="voucher-info-box">
+                <img class="voucher-info-svg" src="/assets/modal/icon-valid-until-theme.svg" alt="Valid until icon">
+                <div class="voucher-info-label">Valid Until</div>
+                <div class="voucher-info-value" id="voucherSheetValid">31 May 2026</div>
+            </div>
+
+            <div class="voucher-info-box">
+                <img class="voucher-info-svg" src="/assets/modal/icon-discount-theme.svg" alt="Discount icon">
+                <div class="voucher-info-label">Discount</div>
+                <div class="voucher-info-value" id="voucherSheetDiscount">15% OFF</div>
+            </div>
+
+            <div class="voucher-info-box">
+                <img class="voucher-info-svg" src="/assets/modal/icon-valid-at-theme.svg" alt="Valid at icon">
+                <div class="voucher-info-label">Valid At</div>
+                <div class="voucher-info-value" id="voucherSheetOutlet">All Outlets</div>
+            </div>
+        </div>
+
+        <div class="voucher-divider"></div>
+
+        <div class="voucher-terms-head">
+            <h3>Terms & Conditions</h3>
+            <span>⌄</span>
+        </div>
+
+        <ul class="voucher-terms" id="voucherSheetTerms">
+            <li>Valid for dine-in and takeaway orders.</li>
+            <li>Not valid with other promotions.</li>
+            <li>Other T&Cs may apply.</li>
+        </ul>
+
+        <button class="voucher-claim-btn" type="button">🎟 Claim Voucher</button>
+    </section>
+</div>
+
+<script>
+const voucherSheetData = {
+    "mcdonalds": {
+        name: "McDonald's",
+        logo: "/assets/store/mcdonalds-logo.png",
+        offer: "15% OFF Total Bill",
+        category: "🍔 Fast Food",
+        about: "Enjoy up to 15% OFF your total bill at selected McDonald's outlets. Limited time only.",
+        valid: "31 May 2026",
+        discount: "15% OFF",
+        outlet: "All Outlets",
+        containLogo: false,
+        terms: [
+            "Valid for dine-in, takeaway and drive-thru.",
+            "Not valid with other promotions.",
+            "While stocks last.",
+            "Other T&Cs may apply."
+        ]
+    },
+    "boost": {
+        name: "Boost",
+        logo: "/assets/store/boost-logo.png",
+        offer: "10% OFF Smoothies",
+        category: "🥤 Beverages",
+        about: "Enjoy 10% OFF smoothies and selected drinks at Boost. Perfect for a quick refreshment.",
+        valid: "10 Jun 2026",
+        discount: "10% OFF",
+        outlet: "Selected Outlets",
+        containLogo: false,
+        terms: [
+            "Valid for selected smoothie drinks only.",
+            "Minimum spend RM15.",
+            "Not valid with other promotions.",
+            "Other T&Cs may apply."
+        ]
+    },
+    "palmyra": {
+        name: "Palmyra",
+        logo: "/assets/store/palmyra-logo.png",
+        offer: "12% OFF Total Bill",
+        category: "🍽️ Oriental Cuisine",
+        about: "Enjoy 12% OFF your total bill at Palmyra Oriental Cuisine. Valid for dine-in meals and selected set menus.",
+        valid: "15 Jun 2026",
+        discount: "12% OFF",
+        outlet: "Selected Outlets",
+        containLogo: true,
+        terms: [
+            "Valid for dine-in only.",
+            "Not valid with other set promotions.",
+            "Service charge may still apply.",
+            "Other T&Cs may apply."
+        ]
+    },
+    "good-burger": {
+        name: "The Good Burger",
+        logo: "/assets/store/logo-good-burger.png",
+        offer: "30% OFF Total Bill",
+        category: "🍔 Burgers",
+        about: "Enjoy 30% discount off your total bill at The Good Burger. Great for burgers, sides and combo meals.",
+        valid: "24 Nov 2026",
+        discount: "30% OFF",
+        outlet: "Puchong Outlet",
+        containLogo: true,
+        terms: [
+            "Valid for selected burgers and combos.",
+            "Not exchangeable for cash.",
+            "Cannot combine with other promotions.",
+            "Other T&Cs may apply."
+        ]
+    },
+    "pastamania": {
+        name: "Pastamania",
+        logo: "/assets/store/pastamania-featured-card-fixed.png",
+        offer: "20% OFF Total Bill",
+        category: "🍝 Casual Dining",
+        about: "Enjoy 20% discount off your total bill at Pastamania. Applicable for pasta, pizza, drinks and selected meals.",
+        valid: "06 Jun 2026",
+        discount: "20% OFF",
+        outlet: "Sunway Velocity",
+        containLogo: false,
+        terms: [
+            "Valid at Pastamania Sunway Velocity only.",
+            "Not valid with other promotions.",
+            "Limited time only.",
+            "Other T&Cs may apply."
+        ]
+    },
+    "tasty-burgers": {
+        name: "Tasty Burgers",
+        logo: "/assets/store/good-burger-featured-card-fixed.png",
+        offer: "Up to 40% OFF",
+        category: "🍔 Burgers",
+        about: "Enjoy fantastic burger deals with up to 40% OFF on selected burger meals and combo sets.",
+        valid: "30 Jun 2026",
+        discount: "Up to 40%",
+        outlet: "Selected Outlets",
+        containLogo: false,
+        terms: [
+            "Valid for selected burger meals only.",
+            "Not valid with other promotions.",
+            "Limited redemptions per user.",
+            "Other T&Cs may apply."
+        ]
+    },
+    "fresh-sushi": {
+        name: "Fresh Sushi",
+        logo: "/assets/voucher/hero2.png",
+        offer: "18% OFF Sushi Sets",
+        category: "🍣 Japanese",
+        about: "Enjoy premium sushi rolls and Japanese sets with better savings for a limited time.",
+        valid: "18 Jun 2026",
+        discount: "18% OFF",
+        outlet: "Selected Outlets",
+        containLogo: false,
+        terms: [
+            "Valid for selected sushi sets only.",
+            "Dine-in and takeaway allowed.",
+            "Not valid with other promotions.",
+            "Other T&Cs may apply."
+        ]
+    },
+    "coffee-breaks": {
+        name: "Coffee Breaks",
+        logo: "/assets/voucher/hero3.png",
+        offer: "RM5 OFF Café Picks",
+        category: "☕ Café",
+        about: "Save on coffee, pastries and café favorites during your next coffee break.",
+        valid: "25 Jun 2026",
+        discount: "RM5 OFF",
+        outlet: "Selected Cafés",
+        containLogo: false,
+        terms: [
+            "Minimum spend RM25.",
+            "Valid for selected café items only.",
+            "Not exchangeable for cash.",
+            "Other T&Cs may apply."
+        ]
+    },
+    "sweet-treats": {
+        name: "Sweet Treats",
+        logo: "/assets/voucher/hero1.png",
+        offer: "Up to 30% OFF",
+        category: "🍰 Desserts",
+        about: "Enjoy dessert cravings with delightful savings on cakes, waffles and sweet treats.",
+        valid: "30 Jun 2026",
+        discount: "Up to 30%",
+        outlet: "Selected Outlets",
+        containLogo: false,
+        terms: [
+            "Valid for selected desserts only.",
+            "While stocks last.",
+            "Not valid with other promotions.",
+            "Other T&Cs may apply."
+        ]
+    }
+};
+
+function openVoucherModal(voucherId) {
+    const data = voucherSheetData[voucherId] || voucherSheetData.mcdonalds;
+
+    document.getElementById("voucherSheetName").textContent = data.name;
+    document.getElementById("voucherSheetLogo").src = data.logo;
+    document.getElementById("voucherSheetLogo").alt = data.name + " logo";
+    document.getElementById("voucherSheetOffer").textContent = data.offer;
+    document.getElementById("voucherSheetCategory").textContent = data.category;
+    document.getElementById("voucherSheetAbout").textContent = data.about;
+    document.getElementById("voucherSheetValid").textContent = data.valid;
+    document.getElementById("voucherSheetDiscount").textContent = data.discount;
+    document.getElementById("voucherSheetOutlet").textContent = data.outlet;
+
+    const logoWrap = document.getElementById("voucherSheetLogoWrap");
+    logoWrap.classList.toggle("contain", data.containLogo);
+
+    const terms = document.getElementById("voucherSheetTerms");
+    terms.innerHTML = data.terms.map((term) => "<li>" + term + "</li>").join("");
+
+    document.getElementById("voucherSheetOverlay").classList.add("active");
+    document.body.classList.add("voucher-sheet-open");
+}
+
+function closeVoucherModal() {
+    document.getElementById("voucherSheetOverlay").classList.remove("active");
+    document.body.classList.remove("voucher-sheet-open");
+}
+
+document.addEventListener("keydown", function(event) {
+    if (event.key === "Escape") {
+        closeVoucherModal();
+    }
+});
+
+window.openVoucherModal = openVoucherModal;
+window.closeVoucherModal = closeVoucherModal;
+</script>
+
+<script>
+document.addEventListener("click", function(event) {
+    const btn = event.target.closest(".voucher-claim-btn");
+    if (!btn) return;
+    const sheet = btn.closest(".voucher-sheet-overlay, .voucher-sheet, [data-voucher-id]");
+    const voucherId = sheet && sheet.getAttribute("data-voucher-id") || btn.dataset.voucherId || "";
+    const titleEl = sheet && sheet.querySelector("h2, h3, .voucher-sheet-title h2");
+    const voucherName = btn.dataset.voucherName || (titleEl && titleEl.textContent) || "Voucher";
+    fetch("/api/activity/save-voucher", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ voucher_id: voucherId, voucher_name: voucherName, merchant_name: voucherName })
+    }).catch(() => {});
+});
+</script>

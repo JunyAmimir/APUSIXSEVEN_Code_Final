@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vouchr - Support Tickets</title>
+<style>
+:root {
+    --orange: #ff7426;
+    --bg: #25282f;
+    --phone: #050a0f;
+    --line: rgba(255,255,255,.12);
+    --muted: #a5abbc;
+    --text: #f7f8fb;
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, Helvetica, sans-serif;
+}
+.phone {
+    width: 330px;
+    height: 708px;
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255,255,255,.08);
+    background:
+        radial-gradient(circle at 88% 6%, rgba(255,116,38,.20), transparent 31%),
+        linear-gradient(180deg, #071018 0%, #03070b 100%);
+}
+.scroll {
+    height: 100%;
+    overflow-y: auto;
+    padding: 24px 14px 94px;
+    scrollbar-width: none;
+}
+.scroll::-webkit-scrollbar { display: none; }
+.top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+.back {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 15px;
+    border: 1px solid rgba(255,255,255,.10);
+    color: #fff;
+    text-decoration: none;
+    font-size: 24px;
+    background: rgba(255,255,255,.045);
+}
+h1 {
+    margin: 0;
+    font-size: 29px;
+    line-height: 1;
+    font-weight: 950;
+}
+.sub {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+.card {
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: rgba(255,255,255,.045);
+    padding: 14px;
+    margin-bottom: 14px;
+}
+.card h2 {
+    margin: 0 0 12px;
+    font-size: 18px;
+}
+label {
+    display: block;
+    color: #d5d9e5;
+    font-size: 11px;
+    font-weight: 900;
+    margin: 0 0 6px;
+    text-transform: uppercase;
+}
+input,
+select,
+textarea {
+    width: 100%;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 14px;
+    background: rgba(255,255,255,.055);
+    color: #fff;
+    outline: 0;
+    padding: 12px;
+    font-size: 13px;
+    margin-bottom: 11px;
+}
+
+select {
+    color-scheme: dark;
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 36px;
+    cursor: pointer;
+    background-color: #171d25;
+    background-image:
+        linear-gradient(45deg, transparent 50%, #aeb6c7 50%),
+        linear-gradient(135deg, #aeb6c7 50%, transparent 50%);
+    background-position:
+        calc(100% - 17px) 50%,
+        calc(100% - 12px) 50%;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+}
+
+select:hover {
+    border-color: rgba(255,116,38,.44);
+    background-color: #1a212a;
+}
+
+select option {
+    background: #141a22;
+    color: #f7f8fb;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+select option:checked {
+    background: #d95d18;
+    color: #fff;
+}
+
+textarea {
+    min-height: 88px;
+    resize: none;
+}
+.attachment-card {
+    border: 1px solid rgba(255,116,38,.55);
+    border-radius: 17px;
+    padding: 10px;
+    margin: -1px 0 14px;
+    background:
+        linear-gradient(135deg, rgba(255,116,38,.12), rgba(255,255,255,.035)),
+        rgba(255,255,255,.035);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+.attachment-input {
+    display: none;
+}
+.attachment-main {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+.attachment-icon {
+    width: 39px;
+    height: 39px;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.12);
+    color: #fff;
+    background: rgba(255,255,255,.055);
+}
+.attachment-icon svg {
+    width: 21px;
+    height: 21px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.attachment-copy {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+.attachment-copy strong {
+    display: block;
+    font-size: 14px;
+    line-height: 1.1;
+    font-weight: 950;
+}
+.attachment-copy span {
+    display: block;
+    margin-top: 4px;
+    color: #c3cad8;
+    font-size: 11px;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.attachment-action,
+.attachment-remove {
+    min-height: 36px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 14px;
+    padding: 0 12px;
+    color: var(--orange);
+    background: rgba(255,255,255,.055);
+    font-size: 13px;
+    font-weight: 950;
+    cursor: pointer;
+}
+.attachment-action {
+    flex: 0 0 auto;
+}
+.attachment-preview-wrap {
+    display: none;
+    margin-top: 10px;
+    gap: 10px;
+    align-items: center;
+}
+.attachment-card.has-file .attachment-preview-wrap {
+    display: flex;
+}
+.attachment-preview {
+    width: 76px;
+    height: 56px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 12px;
+    object-fit: cover;
+    background: #101720;
+}
+.attachment-remove {
+    color: #ffb58f;
+}
+.ticket-attachment-chip {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 7px;
+    border: 1px solid rgba(255,116,38,.36);
+    border-radius: 999px;
+    padding: 2px 7px;
+    color: #ff9a4a;
+    font-size: 10px;
+    font-weight: 900;
+}
+.message-text {
+    white-space: pre-wrap;
+}
+.message-attachment {
+    display: grid;
+    gap: 7px;
+    margin-top: 9px;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    color: inherit;
+    text-decoration: none;
+}
+.message-attachment img {
+    width: 100%;
+    max-height: 118px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 12px;
+    object-fit: contain;
+    background: #101720;
+}
+.message-attachment span {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #ffb58f;
+    font-size: 10px;
+    font-weight: 900;
+}
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+}
+.primary {
+    width: 100%;
+    height: 46px;
+    border: 0;
+    border-radius: 15px;
+    background: linear-gradient(145deg, #ff8a24, #ff6515);
+    color: #fff;
+    font-weight: 950;
+    cursor: pointer;
+}
+.ticket-list {
+    display: grid;
+    gap: 10px;
+}
+.ticket-item {
+    position: relative;
+}
+.ticket-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 16px;
+    min-height: 82px;
+    padding: 11px;
+    background: rgba(255,255,255,.04);
+}
+.ticket-link.active {
+    border-color: rgba(255,116,38,.55);
+    background: rgba(255,116,38,.09);
+}
+.ticket-title {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 950;
+}
+.badge {
+    flex: 0 0 auto;
+    border: 1px solid rgba(255,116,38,.38);
+    color: var(--orange);
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 10px;
+    text-transform: capitalize;
+}
+.ticket-link p {
+    margin: 8px 38px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+.ticket-remove-form {
+    position: absolute;
+    right: 10px;
+    bottom: 9px;
+    z-index: 2;
+    margin: 0;
+}
+.ticket-remove-button {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255,116,38,.38);
+    border-radius: 50%;
+    color: #ffb58f;
+    background: rgba(255,116,38,.10);
+    font-size: 13px;
+    font-weight: 950;
+    line-height: 1;
+    cursor: pointer;
+}
+.messages {
+    display: grid;
+    gap: 9px;
+    margin-bottom: 12px;
+}
+.message {
+    max-width: 88%;
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 15px 15px 15px 5px;
+    padding: 10px;
+    background: rgba(255,255,255,.05);
+    color: #e9edf7;
+    font-size: 13px;
+    line-height: 1.35;
+    overflow: hidden;
+}
+.message.admin {
+    border-color: rgba(255,116,38,.35);
+    background: rgba(255,116,38,.10);
+}
+.message.customer {
+    justify-self: end;
+    border-radius: 15px 15px 5px 15px;
+}
+.message small {
+    display: block;
+    color: var(--muted);
+    margin-bottom: 5px;
+    font-size: 10px;
+    text-transform: capitalize;
+}
+.empty {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.4;
+}
+.bottom-nav {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 68px;
+    padding: 4px;
+    background: rgba(5,8,13,.96);
+    border-top: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+}
+.nav-item {
+    color: #8f96a8;
+    text-decoration: none;
+    display: grid;
+    place-items: center;
+    gap: 3px;
+    padding: 8px 0 7px;
+    font-size: 10px;
+    font-weight: 800;
+    border-radius: 14px;
+}
+.nav-item.active {
+    color: var(--orange);
+    background: rgba(255,116,38,.075);
+}
+.nav-icon {
+    width: 23px;
+    height: 23px;
+    display: block;
+    background: currentColor;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+}
+.nav-main { -webkit-mask-image: url("/assets/nav_icon/icon-main-menu.svg"); mask-image: url("/assets/nav_icon/icon-main-menu.svg"); }
+.nav-voucher { -webkit-mask-image: url("/assets/nav_icon/icon-voucher.svg"); mask-image: url("/assets/nav_icon/icon-voucher.svg"); }
+.nav-map { -webkit-mask-image: url("/assets/nav_icon/icon-map.svg"); mask-image: url("/assets/nav_icon/icon-map.svg"); }
+.nav-budget { -webkit-mask-image: url("/assets/nav_icon/icon-budget.svg"); mask-image: url("/assets/nav_icon/icon-budget.svg"); }
+.nav-profile { -webkit-mask-image: url("/assets/nav_icon/icon-profile.svg"); mask-image: url("/assets/nav_icon/icon-profile.svg"); }
+{% if is_merchant %}
+.bottom-nav { grid-template-columns: repeat(3, 1fr); }
+{% endif %}
+
+
+/* =========================
+   Smooth Support Tickets Tab Animation
+   Matches the other phone tabs: soft page entrance, card lift, button feedback.
+========================= */
+.phone {
+    animation: phoneEnter .42s cubic-bezier(.16, 1, .3, 1) both;
+}
+.scroll {
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+}
+.top,
+.card,
+.ticket-link,
+.message,
+.bottom-nav {
+    opacity: 0;
+    animation: supportFadeUp .62s cubic-bezier(.16, 1, .3, 1) forwards;
+}
+.top { animation-delay: .04s; }
+.card:nth-of-type(1) { animation-delay: .10s; }
+.card:nth-of-type(2) { animation-delay: .18s; }
+.card:nth-of-type(3) { animation-delay: .26s; }
+.ticket-item:nth-child(1) .ticket-link { animation-delay: .24s; }
+.ticket-item:nth-child(2) .ticket-link { animation-delay: .30s; }
+.ticket-item:nth-child(3) .ticket-link { animation-delay: .36s; }
+.ticket-item:nth-child(4) .ticket-link { animation-delay: .42s; }
+.message:nth-child(1) { animation-delay: .30s; }
+.message:nth-child(2) { animation-delay: .36s; }
+.message:nth-child(3) { animation-delay: .42s; }
+.bottom-nav { animation-delay: .24s; }
+
+.back,
+.primary,
+.ticket-link,
+.nav-item,
+input,
+select,
+textarea,
+.attachment-card,
+.attachment-action,
+.attachment-remove,
+.ticket-remove-button,
+.card {
+    transition:
+        transform .22s cubic-bezier(.2, .85, .25, 1),
+        border-color .22s ease,
+        background .22s ease,
+        box-shadow .22s ease,
+        color .22s ease,
+        opacity .22s ease;
+}
+.back:hover,
+.back:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(255,116,38,.48);
+    background: rgba(255,116,38,.10);
+    box-shadow: 0 0 18px rgba(255,116,38,.14);
+    outline: none;
+}
+.back:active,
+.primary:active,
+.nav-item:active,
+.ticket-link:active {
+    transform: scale(.96);
+}
+.card:hover {
+    border-color: rgba(255,116,38,.26);
+    box-shadow: 0 12px 28px rgba(0,0,0,.24), 0 0 18px rgba(255,116,38,.08);
+}
+.ticket-link:hover,
+.ticket-link:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(255,116,38,.48);
+    background: rgba(255,116,38,.08);
+    box-shadow: 0 10px 24px rgba(0,0,0,.22), 0 0 18px rgba(255,116,38,.10);
+    outline: none;
+}
+.ticket-link.active {
+    box-shadow: inset 0 0 0 1px rgba(255,116,38,.14), 0 0 18px rgba(255,116,38,.10);
+}
+.primary:hover,
+.primary:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px rgba(255,101,21,.28), 0 0 18px rgba(255,116,38,.14);
+    outline: none;
+}
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: rgba(255,116,38,.72);
+    background: rgba(255,116,38,.075);
+    box-shadow: 0 0 0 3px rgba(255,116,38,.11);
+}
+.attachment-card:hover,
+.attachment-card:focus-within {
+    transform: translateY(-1px);
+    border-color: rgba(255,116,38,.82);
+    box-shadow: 0 10px 24px rgba(0,0,0,.20), 0 0 20px rgba(255,116,38,.12);
+}
+.attachment-action:hover,
+.attachment-remove:hover,
+.attachment-action:focus-visible,
+.attachment-remove:focus-visible,
+.ticket-remove-button:hover,
+.ticket-remove-button:focus-visible {
+    background: rgba(255,116,38,.14);
+    border-color: rgba(255,116,38,.45);
+    outline: none;
+}
+.ticket-remove-button:active {
+    transform: scale(.92);
+}
+.ticket-remove-button:disabled {
+    cursor: default;
+    opacity: .55;
+}
+.nav-item:hover,
+.nav-item:focus-visible {
+    transform: translateY(-2px);
+    background: rgba(255,116,38,.06);
+    color: var(--orange);
+    outline: none;
+}
+.nav-item.active {
+    box-shadow: inset 0 0 0 1px rgba(255,116,38,.10), 0 0 18px rgba(255,116,38,.08);
+}
+
+.support-exit {
+    animation: supportPageExit .18s ease forwards !important;
+}
+
+@keyframes phoneEnter {
+    from { opacity: 0; transform: translateY(16px) scale(.985); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes supportFadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes supportPageExit {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to { opacity: .35; transform: translateY(10px) scale(.99); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .phone,
+    .top,
+    .card,
+    .ticket-link,
+    .message,
+    .bottom-nav {
+        animation: none !important;
+        opacity: 1 !important;
+    }
+    * { transition: none !important; }
+}
+
+</style>
+<link rel="stylesheet" href="/assets/css/customer_phone_frame.css">
+</head>
+<body>
+<section class="phone">
+    <div class="scroll">
+        <header class="top">
+            <a class="back" href="{{ back_href|default('/profile') }}" aria-label="Back to profile">&lsaquo;</a>
+            <div>
+                <h1>{{ 'Merchant Support' if is_merchant else 'Support' }}</h1>
+                <p class="sub">Send issues and read admin replies.</p>
+            </div>
+        </header>
+
+        <section class="card">
+            <h2>New Ticket</h2>
+            <form method="post" enctype="multipart/form-data" id="supportTicketForm">
+                <input type="hidden" name="action" value="create">
+                <label>Subject</label>
+                <input name="subject" placeholder="Example: Voucher QR issue" required>
+                <div class="grid-2">
+                    <div>
+                        <label>Issue Type</label>
+                        <select name="issue_type">
+                            <option value="voucher_issue">Voucher Issue</option>
+                            <option value="account_issue">Account Issue</option>
+                            <option value="merchant_issue">Merchant Issue</option>
+                            <option value="qr_redeem_issue">QR Redeem Issue</option>
+                            <option value="payment_issue">Payment Issue</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Priority</label>
+                        <select name="priority">
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                </div>
+                <label>Message</label>
+                <textarea name="message" placeholder="Tell us what happened..." required></textarea>
+                <label>Attach Image</label>
+                <div class="attachment-card" id="supportAttachmentCard">
+                    <input class="attachment-input" id="supportAttachmentInput" name="attachment_image" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+                    <div class="attachment-main">
+                        <div class="attachment-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M21.4 11.6 12 21a6 6 0 0 1-8.5-8.5l10-10a4 4 0 0 1 5.7 5.7l-10 10a2 2 0 0 1-2.8-2.8l9.2-9.2"></path>
+                            </svg>
+                        </div>
+                        <div class="attachment-copy">
+                            <strong>Attach Image</strong>
+                            <span id="supportAttachmentName">Optional: add screenshot or photo</span>
+                        </div>
+                        <button class="attachment-action" id="supportAttachmentButton" type="button">+ Add</button>
+                    </div>
+                    <div class="attachment-preview-wrap">
+                        <img class="attachment-preview" id="supportAttachmentPreview" alt="Selected support attachment preview">
+                        <button class="attachment-remove" id="supportAttachmentRemove" type="button">Remove</button>
+                    </div>
+                </div>
+                <button class="primary" type="submit">Submit Ticket</button>
+            </form>
+        </section>
+
+        <section class="card" id="ticketListCard">
+            <h2>Your Tickets</h2>
+            {% if tickets %}
+            <div class="ticket-list">
+                {% for ticket in tickets %}
+                <div class="ticket-item" data-ticket-item="{{ ticket.id }}">
+                    <a class="ticket-link {% if selected_ticket and selected_ticket.id == ticket.id %}active{% endif %}" href="/support?ticket_id={{ ticket.id }}" data-ticket-link>
+                        <div class="ticket-title">
+                            <span>{{ ticket.subject }}</span>
+                            <span class="badge">{{ ticket.status|replace('_', ' ') }}</span>
+                        </div>
+                        {% if ticket.has_attachment %}<span class="ticket-attachment-chip">Image attached</span>{% endif %}
+                    <p>{{ ticket.issue_type|replace('_', ' ') }} · {{ ticket.updated_at }}</p>
+                    </a>
+                    <form class="ticket-remove-form" method="post" action="/support" data-ticket-delete-form>
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
+                        <input type="hidden" name="owner_user_id" value="{{ ticket.user_id }}">
+                        <button class="ticket-remove-button" type="submit" aria-label="Remove ticket {{ ticket.subject|e }}" title="Remove ticket">X</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="empty">No tickets yet. Create one above and admin replies will appear here.</p>
+            {% endif %}
+        </section>
+
+        {% if selected_ticket %}
+        <section class="card" data-selected-ticket-detail="{{ selected_ticket.id }}">
+            <h2>{{ selected_ticket.subject }}</h2>
+            <div class="messages">
+                {% for message in messages %}
+                <div class="message {{ message.sender_role }}">
+                    <small>{{ message.sender_role }} · {{ message.created_at }}</small>
+                    <div class="message-text">{{ message.message }}</div>
+                    {% if message.attachment_url %}
+                    <a class="message-attachment" href="{{ message.attachment_url }}" target="_blank" rel="noopener">
+                        <img src="{{ message.attachment_url }}" alt="Attached support image">
+                        <span>{{ message.attachment_name or 'View attached image' }}</span>
+                    </a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if selected_ticket.status != "resolved" %}
+            <form method="post">
+                <input type="hidden" name="action" value="reply">
+                <input type="hidden" name="ticket_id" value="{{ selected_ticket.id }}">
+                <label>Reply</label>
+                <textarea name="message" placeholder="Add more details..." required></textarea>
+                <button class="primary" type="submit">Send Reply</button>
+            </form>
+            {% else %}
+            <p class="empty">This ticket has been resolved.</p>
+            {% endif %}
+        </section>
+        {% endif %}
+    </div>
+
+    <nav class="bottom-nav">
+        {% if is_merchant %}
+        <a class="nav-item" href="/merchant-main-menu"><span class="nav-icon nav-main"></span><em>Home</em></a>
+        <a class="nav-item" href="/create"><span class="nav-icon nav-voucher"></span><em>Create</em></a>
+        <a class="nav-item active" href="/merchant-profile"><span class="nav-icon nav-profile"></span><em>You</em></a>
+        {% else %}
+        <a class="nav-item" href="/main-menu"><span class="nav-icon nav-main"></span><em>Main</em></a>
+        <a class="nav-item" href="/voucher"><span class="nav-icon nav-voucher"></span><em>Voucher</em></a>
+        <a class="nav-item" href="/map"><span class="nav-icon nav-map"></span><em>Map</em></a>
+        <a class="nav-item" href="/budget"><span class="nav-icon nav-budget"></span><em>Budget</em></a>
+        <a class="nav-item active" href="/profile"><span class="nav-icon nav-profile"></span><em>Profile</em></a>
+        {% endif %}
+    </nav>
+</section>
+
+<script>
+(function () {
+    const card = document.getElementById('supportAttachmentCard');
+    const input = document.getElementById('supportAttachmentInput');
+    const pickButton = document.getElementById('supportAttachmentButton');
+    const removeButton = document.getElementById('supportAttachmentRemove');
+    const nameLabel = document.getElementById('supportAttachmentName');
+    const preview = document.getElementById('supportAttachmentPreview');
+    let previewUrl = '';
+
+    if (!card || !input || !pickButton || !removeButton || !nameLabel || !preview) return;
+
+    function resetAttachment() {
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        previewUrl = '';
+        input.value = '';
+        preview.removeAttribute('src');
+        card.classList.remove('has-file');
+        nameLabel.textContent = 'Optional: add screenshot or photo';
+        pickButton.textContent = '+ Add';
+    }
+
+    pickButton.addEventListener('click', () => input.click());
+    removeButton.addEventListener('click', resetAttachment);
+
+    input.addEventListener('change', () => {
+        const file = input.files && input.files[0];
+        if (!file) {
+            resetAttachment();
+            return;
+        }
+
+        const isImage = /^image\//.test(file.type || '') || /\.(png|jpe?g|gif|webp)$/i.test(file.name || '');
+        if (!isImage) {
+            resetAttachment();
+            nameLabel.textContent = 'Please choose PNG, JPG, GIF, or WebP';
+            return;
+        }
+
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        previewUrl = URL.createObjectURL(file);
+        preview.src = previewUrl;
+        card.classList.add('has-file');
+        nameLabel.textContent = file.name;
+        pickButton.textContent = 'Change';
+    });
+})();
+
+(function () {
+    const scrollArea = document.querySelector('.scroll');
+    const ticketList = document.querySelector('.ticket-list');
+    const deleteForms = document.querySelectorAll('[data-ticket-delete-form]');
+    const savedScroll = sessionStorage.getItem('supportScrollTop');
+    const legacyDeleteMessage = '__VOUCHR_DELETE_SUPPORT_TICKET__';
+
+    async function deleteWithLegacyReply(form) {
+        const ticketId = form.querySelector('input[name="ticket_id"]')?.value || '';
+        const fallbackData = new FormData();
+        fallbackData.append('action', 'reply');
+        fallbackData.append('ticket_id', ticketId);
+        fallbackData.append('message', legacyDeleteMessage);
+
+        const response = await fetch('/support', {
+            method: 'POST',
+            body: fallbackData,
+            credentials: 'same-origin',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        if (!response.ok) throw new Error('Ticket was not removed');
+        return { success: true, ticket_id: ticketId };
+    }
+
+    if (scrollArea && savedScroll !== null) {
+        const restoreScroll = () => {
+            scrollArea.scrollTop = Number(savedScroll) || 0;
+        };
+        requestAnimationFrame(() => {
+            restoreScroll();
+            setTimeout(restoreScroll, 80);
+        });
+        sessionStorage.removeItem('supportScrollTop');
+    }
+
+    deleteForms.forEach(form => {
+        form.addEventListener('submit', async event => {
+            event.preventDefault();
+
+            const ticketId = form.querySelector('input[name="ticket_id"]')?.value || '';
+            const ticketItem = form.closest('[data-ticket-item]');
+            const button = form.querySelector('.ticket-remove-button');
+            const previousScroll = scrollArea ? scrollArea.scrollTop : 0;
+
+            async function removeTicket() {
+                const response = await fetch(form.action || window.location.href, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (!(response.headers.get('content-type') || '').includes('application/json')) {
+                    return deleteWithLegacyReply(form);
+                }
+                const result = await response.json();
+                if (!response.ok || !result.success) throw new Error('Ticket was not removed');
+                return result;
+            }
+
+            if (button) button.disabled = true;
+
+            try {
+                await removeTicket();
+
+                if (ticketItem) ticketItem.remove();
+
+                const detail = document.querySelector(`[data-selected-ticket-detail="${ticketId}"]`);
+                if (detail) detail.remove();
+
+                if (ticketList && !ticketList.querySelector('[data-ticket-item]')) {
+                    const empty = document.createElement('p');
+                    empty.className = 'empty';
+                    empty.textContent = 'No tickets yet. Create one above and admin replies will appear here.';
+                    ticketList.replaceWith(empty);
+                }
+
+                if (scrollArea) scrollArea.scrollTop = previousScroll;
+            } catch (error) {
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = '!';
+                    button.title = 'Ticket could not be removed';
+                    setTimeout(() => {
+                        button.textContent = 'X';
+                        button.title = 'Remove ticket';
+                    }, 1400);
+                }
+                if (scrollArea) scrollArea.scrollTop = previousScroll;
+            }
+        });
+    });
+})();
+
+(function () {
+    const phone = document.querySelector('.phone');
+    const links = document.querySelectorAll('a[href]:not([href^="#"]):not([target])');
+
+    links.forEach(link => {
+        link.addEventListener('click', function (event) {
+            const href = this.getAttribute('href') || '';
+            if (!href || href.startsWith('javascript:') || href === window.location.pathname + window.location.search) return;
+            if (this.matches('[data-ticket-link]')) {
+                const scrollArea = document.querySelector('.scroll');
+                if (scrollArea) sessionStorage.setItem('supportScrollTop', String(scrollArea.scrollTop));
+            }
+            event.preventDefault();
+            if (phone) phone.classList.add('support-exit');
+            setTimeout(() => {
+                window.location.href = href;
+            }, 150);
+        });
+    });
+})();
+</script>
+
+</body>
+</html>

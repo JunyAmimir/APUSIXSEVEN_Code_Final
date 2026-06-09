@@ -1,0 +1,2905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vouchr - Budget</title>
+
+<style>
+:root {
+    --orange: #ff7426;
+    --orange2: #f25a0b;
+    --bg: #25282f;
+    --phone: #060a0f;
+    --line: rgba(255,255,255,.12);
+    --text: #f7f8fb;
+    --muted: #a3a9ba;
+    --muted2: #747b8d;
+    --green: #72d572;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text);
+}
+
+.stage {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 14px;
+}
+
+.phone {
+    width: 330px;
+    height: 708px;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 83% 8%, rgba(255,116,38,.17), transparent 27%),
+        radial-gradient(circle at 8% 52%, rgba(255,116,38,.07), transparent 28%),
+        linear-gradient(180deg, #081018 0%, #04070b 100%);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 24px 50px rgba(0,0,0,.35);
+}
+
+.content {
+    height: 100%;
+    overflow-y: auto;
+    padding: 22px 13px 90px;
+    scrollbar-width: none;
+}
+
+.content::-webkit-scrollbar {
+    display: none;
+}
+
+/* Header */
+.budget-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 13px;
+    animation: fadeUp .42s ease both;
+}
+
+.budget-header h1 {
+    margin: 0;
+    font-size: 31px;
+    line-height: 1;
+    font-weight: 950;
+    letter-spacing: -.8px;
+}
+
+.month-pill {
+    height: 35px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.13);
+    background: rgba(255,255,255,.045);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 900;
+    color: #e8ebf3;
+}
+
+.month-pill svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: var(--orange);
+    stroke-width: 2.1;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Overview */
+.overview-card {
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 20px;
+    background:
+        radial-gradient(circle at 88% 15%, rgba(255,116,38,.12), transparent 30%),
+        radial-gradient(circle at 18% 28%, rgba(255,116,38,.07), transparent 28%),
+        rgba(255,255,255,.035);
+    padding: 13px;
+    margin-bottom: 12px;
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.04),
+        0 16px 30px rgba(0,0,0,.18);
+    animation: fadeUp .42s ease .04s both;
+}
+
+.overview-top {
+    display: grid;
+    grid-template-columns: 116px 1fr;
+    gap: 11px;
+    align-items: center;
+}
+
+.ring-wrap {
+    min-width: 0;
+    height: 130px;
+    display: grid;
+    place-items: center;
+    position: relative;
+}
+
+.budget-ring {
+    width: 104px;
+    height: 104px;
+    border-radius: 50%;
+    background:
+        conic-gradient(var(--orange) 0deg, var(--orange) 0deg, rgba(255,255,255,.10) 0deg 360deg);
+    display: grid;
+    place-items: center;
+    filter: drop-shadow(0 0 11px rgba(255,116,38,.28));
+    transition: background .45s ease;
+}
+
+.budget-ring::before {
+    content: "";
+    position: absolute;
+    width: 99px;
+    height: 99px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,116,38,.42);
+    box-shadow: 0 0 13px rgba(255,116,38,.13);
+}
+
+.budget-ring::after {
+    content: "";
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 50% 34%, rgba(255,255,255,.04), transparent 32%),
+        #071018;
+    box-shadow: inset 0 0 18px rgba(0,0,0,.45);
+}
+
+.ring-text {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    text-align: center;
+}
+
+.ring-text strong {
+    font-size: 29px;
+    line-height: 1;
+    letter-spacing: -1.1px;
+}
+
+.ring-text span {
+    margin-top: 4px;
+    color: #c1c6d2;
+    font-size: 9.8px;
+    line-height: 1.12;
+}
+
+.stat-list {
+    min-width: 0;
+    display: grid;
+    align-self: center;
+    grid-template-rows: repeat(3, minmax(36px, 1fr));
+    min-height: 112px;
+}
+
+.stat-row {
+    display: grid;
+    grid-template-columns: 25px minmax(0, 1fr) auto;
+    gap: 7px;
+    align-items: center;
+    min-height: 36px;
+    border-bottom: 1px solid rgba(255,255,255,.075);
+}
+
+.stat-row:last-child {
+    border-bottom: 0;
+}
+
+.stat-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: rgba(255,116,38,.12);
+    color: #ff8a24;
+    font-size: 11px;
+}
+
+.stat-label {
+    min-width: 0;
+    font-size: 12.3px;
+    line-height: 1;
+    font-weight: 950;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stat-value {
+    max-width: 76px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: right;
+    font-size: 12.8px;
+    font-weight: 950;
+    white-space: nowrap;
+    line-height: 1.1;
+}
+
+.stat-value.orange {
+    color: var(--orange);
+}
+
+.stat-value.green {
+    color: var(--green);
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+    margin-top: 11px;
+}
+
+.quick-action {
+    height: 42px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,116,38,.48);
+    background: rgba(255,255,255,.035);
+    color: #f7f8fb;
+    font-size: 13.5px;
+    font-weight: 950;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.quick-action.primary {
+    border: 0;
+    background:
+        radial-gradient(circle at 28% 22%, rgba(255,255,255,.18), transparent 26%),
+        linear-gradient(145deg, #ff8a24, #f25a0b);
+    box-shadow: 0 12px 24px rgba(255,116,38,.18);
+}
+
+.quick-action.secondary {
+    color: var(--orange);
+}
+
+.quick-action span {
+    font-size: 17px;
+}
+
+/* Section heads */
+.section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 0 9px;
+}
+
+.section-head h2 {
+    margin: 0;
+    font-size: 18px;
+    letter-spacing: -.3px;
+}
+
+.section-head button {
+    border: 0;
+    background: transparent;
+    color: var(--orange);
+    font-weight: 950;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 5px 0;
+}
+
+/* Insights */
+.insight-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.insight-card {
+    min-height: 70px;
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 15px;
+    background:
+        radial-gradient(circle at 84% 12%, rgba(255,116,38,.06), transparent 32%),
+        rgba(255,255,255,.035);
+    padding: 9px;
+}
+
+.insight-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: #ff8a24;
+    background: rgba(255,116,38,.12);
+    font-size: 12px;
+    margin-bottom: 7px;
+}
+
+.insight-card strong {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 3px;
+    line-height: 1.05;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.insight-card span {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.2;
+}
+
+/* Category breakdown */
+.breakdown-card {
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 86% 12%, rgba(255,116,38,.06), transparent 30%),
+        rgba(255,255,255,.035);
+    padding: 12px 11px;
+    margin-bottom: 13px;
+}
+
+.breakdown-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 7px;
+}
+
+.breakdown-title {
+    margin: 0;
+    font-size: 15.8px;
+    letter-spacing: -.2px;
+}
+
+.breakdown-head button {
+    border: 0;
+    background: transparent;
+    color: var(--orange);
+    font-weight: 900;
+    font-size: 11.5px;
+    padding: 0;
+}
+
+#breakdownRows {
+    display: grid;
+    gap: 3px;
+}
+
+.breakdown-row {
+    display: grid;
+    grid-template-columns: minmax(90px, .95fr) minmax(48px, 1fr) minmax(72px, auto) minmax(34px, auto);
+    align-items: center;
+    gap: 7px;
+    min-height: 35px;
+    width: 100%;
+}
+
+.breakdown-left {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.breakdown-icon {
+    width: 29px;
+    height: 29px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: var(--orange);
+    background: rgba(255,116,38,.12);
+    font-size: 13px;
+}
+
+.breakdown-name {
+    font-size: 12.8px;
+    font-weight: 900;
+    white-space: nowrap;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.breakdown-track {
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.10);
+    overflow: hidden;
+    min-width: 0;
+}
+
+.breakdown-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #ff8a24, #f25a0b);
+    box-shadow: 0 0 10px rgba(255,116,38,.20);
+    transition: width .45s ease;
+}
+
+.breakdown-amount {
+    text-align: right;
+    font-size: 11.6px;
+    font-weight: 800;
+    white-space: nowrap;
+    min-width: 72px;
+    font-variant-numeric: tabular-nums;
+}
+
+.breakdown-percent {
+    text-align: right;
+    color: var(--orange);
+    font-size: 11.8px;
+    font-weight: 950;
+    white-space: nowrap;
+    min-width: 34px;
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 360px) {
+    .breakdown-row {
+        grid-template-columns: minmax(82px, .9fr) minmax(40px, 1fr) minmax(68px, auto) minmax(32px, auto);
+        gap: 6px;
+    }
+
+    .breakdown-left {
+        gap: 7px;
+    }
+
+    .breakdown-name,
+    .breakdown-amount,
+    .breakdown-percent {
+        font-size: 11.2px;
+    }
+}
+
+/* Recent expenses */
+.recent-list {
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 18px;
+    background: rgba(255,255,255,.028);
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.transaction-row {
+    min-height: 54px;
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+}
+
+.transaction-row:last-child {
+    border-bottom: 0;
+}
+
+.transaction-logo {
+    width: 39px;
+    height: 39px;
+    border-radius: 13px;
+    display: grid;
+    place-items: center;
+    color: var(--orange);
+    background: rgba(255,116,38,.12);
+    font-size: 19px;
+    overflow: hidden;
+}
+
+.transaction-info {
+    min-width: 0;
+}
+
+.transaction-info h3 {
+    margin: 0 0 3px;
+    font-size: 13.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.transaction-info p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 10.5px;
+}
+
+.transaction-amount {
+    font-size: 12.8px;
+    font-weight: 950;
+    white-space: nowrap;
+}
+
+/* Set Budget Modal */
+.set-budget-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 990;
+    display: none;
+    align-items: flex-end;
+    background: rgba(0,0,0,.60);
+    backdrop-filter: blur(8px);
+}
+
+.set-budget-overlay.active {
+    display: flex;
+}
+
+.set-budget-sheet {
+    width: 100%;
+    border-radius: 26px 26px 0 0;
+    border: 1px solid rgba(255,255,255,.12);
+    border-bottom: 0;
+    background:
+        radial-gradient(circle at 86% 8%, rgba(255,116,38,.14), transparent 26%),
+        linear-gradient(180deg, #111821 0%, #070b11 100%);
+    padding: 13px 16px 20px;
+    box-shadow: 0 -20px 44px rgba(0,0,0,.48);
+    animation: sheetUp .28s cubic-bezier(.2,.85,.25,1) both;
+}
+
+.set-budget-handle {
+    width: 46px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.24);
+    margin: 0 auto 14px;
+}
+
+.set-budget-head {
+    display: grid;
+    grid-template-columns: 36px 1fr 36px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.set-budget-head h3 {
+    text-align: center;
+    margin: 0;
+    font-size: 21px;
+    letter-spacing: -.3px;
+}
+
+.close-budget-btn {
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 50%;
+    background: rgba(255,255,255,.06);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.budget-input-label {
+    display: block;
+    margin: 0 0 8px;
+    color: #d7dce8;
+    font-size: 13px;
+    font-weight: 850;
+}
+
+.budget-input-shell {
+    height: 58px;
+    border: 1px solid rgba(255,116,38,.45);
+    border-radius: 17px;
+    background:
+        radial-gradient(circle at 92% 22%, rgba(255,116,38,.10), transparent 34%),
+        rgba(255,255,255,.045);
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    align-items: center;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.budget-input-shell strong {
+    height: 100%;
+    display: grid;
+    place-items: center;
+    color: #ff8a24;
+    border-right: 1px solid rgba(255,255,255,.09);
+    font-size: 18px;
+}
+
+.budget-input-shell input {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #f7f8fb;
+    font-size: 27px;
+    font-weight: 900;
+    padding: 0 14px;
+}
+
+.budget-helper {
+    margin: 0 0 14px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.set-budget-actions {
+    display: grid;
+    grid-template-columns: 1fr 1.35fr;
+    gap: 10px;
+}
+
+.cancel-budget-btn,
+.save-budget-btn {
+    height: 49px;
+    border-radius: 15px;
+    font-size: 14px;
+    font-weight: 950;
+    cursor: pointer;
+}
+
+.cancel-budget-btn {
+    border: 1px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.045);
+    color: #f7f8fb;
+}
+
+.save-budget-btn {
+    border: 0;
+    background:
+        radial-gradient(circle at 26% 22%, rgba(255,255,255,.18), transparent 26%),
+        linear-gradient(145deg, #ff8a24, #f25a0b);
+    color: #fff;
+    box-shadow: 0 12px 24px rgba(255,116,38,.22);
+}
+
+/* Bottom nav */
+.bottom-nav {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 68px !important;
+    padding: 4px 4px 5px;
+    background:
+        linear-gradient(180deg, rgba(10, 15, 22, .88), rgba(4, 7, 11, .98)) !important;
+    border-top: 1px solid rgba(255,255,255,.11) !important;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -12px 26px rgba(0,0,0,.26);
+    z-index: 900;
+}
+
+.nav-item {
+    color: #8f96a8 !important;
+    text-decoration: none;
+    display: grid;
+    place-items: center;
+    gap: 3px;
+    padding: 8px 0 7px;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 14px;
+    transition: color .18s ease, transform .18s ease, background .18s ease, box-shadow .18s ease;
+}
+
+.nav-item.active {
+    color: #ff7426 !important;
+    background: rgba(255,116,38,.075);
+    box-shadow: inset 0 0 0 1px rgba(255,116,38,.12);
+}
+
+.nav-item em {
+    font-style: normal;
+    font-size: 10px;
+    line-height: 1;
+    font-weight: 800;
+}
+
+.nav-icon {
+    width: 23px;
+    height: 23px;
+    display: block;
+    background: currentColor;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+}
+
+.nav-main { -webkit-mask-image: url("/assets/nav_icon/icon-main-menu.svg"); mask-image: url("/assets/nav_icon/icon-main-menu.svg"); }
+.nav-voucher { -webkit-mask-image: url("/assets/nav_icon/icon-voucher.svg"); mask-image: url("/assets/nav_icon/icon-voucher.svg"); }
+.nav-map { -webkit-mask-image: url("/assets/nav_icon/icon-map.svg"); mask-image: url("/assets/nav_icon/icon-map.svg"); }
+.nav-budget { -webkit-mask-image: url("/assets/nav_icon/icon-budget.svg"); mask-image: url("/assets/nav_icon/icon-budget.svg"); }
+.nav-profile { -webkit-mask-image: url("/assets/nav_icon/icon-profile.svg"); mask-image: url("/assets/nav_icon/icon-profile.svg"); }
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sheetUp {
+    from { opacity: 0; transform: translateY(42px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================
+   Budget SVG Icon Styling
+   Replaces emojis with professional neon SVG icons.
+========================= */
+
+.budget-icon-img {
+    width: 17px;
+    height: 17px;
+    display: block;
+    object-fit: contain;
+}
+
+.stat-icon .budget-icon-img {
+    width: 19px;
+    height: 19px;
+}
+
+.insight-icon .budget-icon-img {
+    width: 18px;
+    height: 18px;
+}
+
+.breakdown-icon .budget-icon-img {
+    width: 20px;
+    height: 20px;
+}
+
+.transaction-logo .budget-icon-img {
+    width: 28px;
+    height: 28px;
+}
+
+.quick-action .budget-icon-img {
+    width: 19px;
+    height: 19px;
+}
+
+
+
+
+/* =========================
+   Budget Page Animation Pack
+   Subtle app-like motion.
+========================= */
+
+.overview-card,
+.insight-grid,
+.breakdown-card,
+.recent-list {
+    opacity: 0;
+    transform: translateY(14px);
+    animation: budgetSectionIn .48s cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+.overview-card {
+    animation-delay: .05s;
+}
+
+.insight-grid {
+    animation-delay: .14s;
+}
+
+.breakdown-card {
+    animation-delay: .22s;
+}
+
+.recent-list {
+    animation-delay: .30s;
+}
+
+.insight-card,
+.breakdown-card,
+.transaction-row,
+.quick-action,
+.month-pill,
+.nav-item {
+    transition:
+        transform .18s ease,
+        border-color .18s ease,
+        background .18s ease,
+        box-shadow .18s ease,
+        opacity .18s ease;
+}
+
+.insight-card:hover,
+.breakdown-card:hover,
+.transaction-row:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255,116,38,.20);
+}
+
+.quick-action:active,
+.nav-item:active,
+.section-head button:active {
+    transform: scale(.96);
+}
+
+.quick-action.primary {
+    position: relative;
+    overflow: hidden;
+}
+
+.quick-action.primary::after {
+    content: "";
+    position: absolute;
+    inset: -50%;
+    background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,.24), transparent 62%);
+    transform: translateX(-80%) rotate(12deg);
+    animation: buttonShine 3.6s ease-in-out infinite;
+}
+
+.quick-action.primary > * {
+    position: relative;
+    z-index: 1;
+}
+
+.budget-ring {
+    animation: ringGlowPulse 2.6s ease-in-out infinite;
+}
+
+.stat-row {
+    opacity: 0;
+    transform: translateX(10px);
+    animation: statRowIn .38s cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+.stat-row:nth-child(1) { animation-delay: .12s; }
+.stat-row:nth-child(2) { animation-delay: .19s; }
+.stat-row:nth-child(3) { animation-delay: .26s; }
+
+.stat-icon,
+.insight-icon,
+.breakdown-icon,
+.transaction-logo {
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.stat-row:hover .stat-icon,
+.insight-card:hover .insight-icon,
+.breakdown-row:hover .breakdown-icon,
+.transaction-row:hover .transaction-logo {
+    transform: scale(1.08);
+    box-shadow: 0 0 14px rgba(255,116,38,.16);
+}
+
+.breakdown-row {
+    opacity: 0;
+    transform: translateX(-8px);
+    animation: breakdownRowIn .36s cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+.breakdown-row:nth-child(1) { animation-delay: .28s; }
+.breakdown-row:nth-child(2) { animation-delay: .34s; }
+.breakdown-row:nth-child(3) { animation-delay: .40s; }
+.breakdown-row:nth-child(4) { animation-delay: .46s; }
+
+.breakdown-fill {
+    transform-origin: left center;
+    animation: barGlow .9s ease both;
+}
+
+.transaction-row {
+    opacity: 0;
+    transform: translateY(8px);
+    animation: transactionIn .36s cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+.transaction-row:nth-child(1) { animation-delay: .34s; }
+.transaction-row:nth-child(2) { animation-delay: .40s; }
+.transaction-row:nth-child(3) { animation-delay: .46s; }
+
+.set-budget-sheet,
+.add-expense-sheet {
+    animation: sheetUpSpring .32s cubic-bezier(.2,.85,.25,1) both !important;
+}
+
+.budget-value-pop {
+    animation: valuePop .24s ease both;
+}
+
+@keyframes budgetSectionIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes statRowIn {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes breakdownRowIn {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes transactionIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes ringGlowPulse {
+    0%, 100% {
+        filter: drop-shadow(0 0 10px rgba(255,116,38,.22));
+    }
+    50% {
+        filter: drop-shadow(0 0 17px rgba(255,116,38,.36));
+    }
+}
+
+@keyframes buttonShine {
+    0%, 62% {
+        transform: translateX(-85%) rotate(12deg);
+    }
+    78%, 100% {
+        transform: translateX(85%) rotate(12deg);
+    }
+}
+
+@keyframes barGlow {
+    from {
+        filter: brightness(.7);
+    }
+    to {
+        filter: brightness(1);
+    }
+}
+
+@keyframes sheetUpSpring {
+    from {
+        opacity: 0;
+        transform: translateY(48px) scale(.985);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes valuePop {
+    0% {
+        transform: scale(.96);
+        opacity: .75;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+
+/* =========================
+   Recent Expense Delete Button
+========================= */
+
+.transaction-row {
+    position: relative;
+}
+
+.expense-delete-btn {
+    width: 28px;
+    height: 28px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 50%;
+    background: rgba(255,255,255,.055);
+    color: #a3a9ba;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform .18s ease, color .18s ease, background .18s ease, border-color .18s ease;
+}
+
+.expense-delete-btn:hover {
+    color: #fff;
+    background: rgba(255,116,38,.20);
+    border-color: rgba(255,116,38,.48);
+    transform: scale(1.04);
+}
+
+.expense-delete-btn:active {
+    transform: scale(.92);
+}
+
+.transaction-row.deleting {
+    opacity: 0;
+    transform: translateX(16px) scale(.98);
+    transition: opacity .22s ease, transform .22s ease;
+}
+
+.transaction-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 7px;
+}
+
+.transaction-actions .transaction-amount {
+    min-width: 58px;
+    text-align: right;
+}
+
+.transaction-row[data-expense-id] {
+    cursor: pointer;
+}
+
+.transaction-row[data-expense-id]:focus-visible {
+    outline: 2px solid rgba(255,116,38,.82);
+    outline-offset: -2px;
+}
+
+/* Expense detail popup */
+.expense-detail-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(0,0,0,0);
+    backdrop-filter: blur(0);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    perspective: 900px;
+    overflow: hidden;
+    transition:
+        opacity .24s ease,
+        visibility 0s linear .24s,
+        background .24s ease,
+        backdrop-filter .24s ease;
+}
+
+.expense-detail-overlay::before,
+.expense-detail-overlay::after {
+    content: "";
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0;
+    filter: blur(20px);
+}
+
+.expense-detail-overlay::before {
+    top: 8%;
+    right: -90px;
+    background: radial-gradient(circle, rgba(255,116,38,.34), transparent 68%);
+    transform: translate(30px, -18px) scale(.72);
+}
+
+.expense-detail-overlay::after {
+    bottom: 3%;
+    left: -105px;
+    background: radial-gradient(circle, rgba(242,90,11,.24), transparent 70%);
+    transform: translate(-24px, 24px) scale(.76);
+}
+
+.expense-detail-overlay.active {
+    background: rgba(0,0,0,.70);
+    backdrop-filter: blur(10px);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0s;
+}
+
+.expense-detail-overlay.active::before {
+    animation: expenseDetailOrbRight 4.8s ease-in-out .05s infinite alternate;
+}
+
+.expense-detail-overlay.active::after {
+    animation: expenseDetailOrbLeft 5.4s ease-in-out .14s infinite alternate;
+}
+
+.expense-detail-card {
+    position: relative;
+    width: 100%;
+    max-height: calc(100% - 36px);
+    overflow-y: auto;
+    border: 1px solid rgba(255,255,255,.13);
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 88% 8%, rgba(255,116,38,.16), transparent 29%),
+        linear-gradient(180deg, #111821 0%, #070b11 100%);
+    padding: 16px;
+    box-shadow: 0 24px 54px rgba(0,0,0,.58);
+    opacity: 0;
+    transform: translateY(30px) scale(.91) rotateX(7deg);
+    transform-origin: center bottom;
+    transition:
+        opacity .22s ease,
+        transform .32s cubic-bezier(.18,.88,.25,1.12),
+        box-shadow .32s ease;
+    scrollbar-width: none;
+}
+
+.expense-detail-overlay.active .expense-detail-card {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotateX(0);
+    box-shadow:
+        0 26px 58px rgba(0,0,0,.62),
+        0 0 34px rgba(255,116,38,.10);
+}
+
+.expense-detail-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(115deg, transparent 28%, rgba(255,255,255,.055), transparent 62%);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(-65%);
+}
+
+.expense-detail-card::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 14%;
+    right: 14%;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, #ff8a24, #ffd09d, #ff7426, transparent);
+    box-shadow: 0 0 16px rgba(255,116,38,.74);
+    opacity: 0;
+    transform: scaleX(.25);
+    pointer-events: none;
+}
+
+.expense-detail-overlay.active .expense-detail-card::before {
+    animation: expenseDetailSheen .72s ease .08s both;
+}
+
+.expense-detail-overlay.active .expense-detail-card::after {
+    animation: expenseDetailEdgeGlow .72s cubic-bezier(.2,.85,.25,1) .16s both;
+}
+
+.expense-detail-card::-webkit-scrollbar {
+    display: none;
+}
+
+.expense-detail-head {
+    display: grid;
+    grid-template-columns: 36px 1fr 36px;
+    align-items: center;
+    margin-bottom: 17px;
+}
+
+.expense-detail-head h3 {
+    margin: 0;
+    text-align: center;
+    font-size: 19px;
+    letter-spacing: -.25px;
+}
+
+.expense-detail-overlay.active .expense-detail-head h3 {
+    animation: expenseDetailTitleIn .46s cubic-bezier(.2,.85,.25,1) .14s both;
+}
+
+.expense-detail-close {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 50%;
+    background: rgba(255,255,255,.06);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 21px;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        transform .2s ease,
+        border-color .2s ease,
+        background .2s ease,
+        box-shadow .2s ease;
+}
+
+.expense-detail-close:hover,
+.expense-detail-close:focus-visible {
+    border-color: rgba(255,116,38,.62);
+    background: rgba(255,116,38,.16);
+    box-shadow: 0 0 18px rgba(255,116,38,.14);
+    transform: rotate(90deg);
+    outline: none;
+}
+
+.expense-detail-summary {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 11px;
+    padding: 12px;
+    margin-bottom: 12px;
+    border: 1px solid rgba(255,116,38,.24);
+    border-radius: 18px;
+    background: rgba(255,255,255,.04);
+    overflow: hidden;
+    position: relative;
+}
+
+.expense-detail-summary::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid transparent;
+    pointer-events: none;
+}
+
+.expense-detail-overlay.active .expense-detail-summary::after {
+    animation: expenseDetailSummaryGlow 2.6s ease-in-out .5s infinite;
+}
+
+.expense-detail-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 15px;
+    display: grid;
+    place-items: center;
+    background: rgba(255,116,38,.13);
+    box-shadow: inset 0 0 0 1px rgba(255,116,38,.10);
+}
+
+.expense-detail-overlay.active .expense-detail-icon {
+    animation: expenseDetailIconPulse .58s cubic-bezier(.2,.85,.25,1) .18s both;
+}
+
+.expense-detail-overlay.active .expense-detail-icon img {
+    animation: expenseDetailIconFloat 2.4s ease-in-out .72s infinite;
+}
+
+.expense-detail-merchant {
+    min-width: 0;
+}
+
+.expense-detail-merchant strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 15px;
+}
+
+.expense-detail-merchant span {
+    display: block;
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.expense-detail-amount {
+    color: var(--orange);
+    font-size: 16px;
+    font-weight: 950;
+    white-space: nowrap;
+}
+
+.expense-detail-overlay.active .expense-detail-amount {
+    animation:
+        expenseDetailAmountPop .48s cubic-bezier(.2,.85,.25,1.15) .22s both,
+        expenseDetailAmountGlow 2.4s ease-in-out .82s infinite;
+}
+
+.expense-detail-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+    margin-bottom: 12px;
+}
+
+.expense-detail-meta div,
+.expense-detail-note {
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 16px;
+    background: rgba(255,255,255,.035);
+}
+
+.expense-detail-meta div {
+    min-width: 0;
+    padding: 11px;
+    opacity: 0;
+}
+
+.expense-detail-overlay.active .expense-detail-meta div:first-child {
+    animation: expenseDetailMetaLeft .42s cubic-bezier(.2,.85,.25,1) .25s both;
+}
+
+.expense-detail-overlay.active .expense-detail-meta div:last-child {
+    animation: expenseDetailMetaRight .42s cubic-bezier(.2,.85,.25,1) .30s both;
+}
+
+.expense-detail-meta span,
+.expense-detail-note span {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--muted);
+    font-size: 10.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .45px;
+}
+
+.expense-detail-meta strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12.5px;
+}
+
+.expense-detail-note {
+    min-height: 100px;
+    padding: 13px;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+}
+
+.expense-detail-note::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 14px;
+    bottom: 14px;
+    width: 3px;
+    border-radius: 0 999px 999px 0;
+    background: linear-gradient(180deg, #ff9b46, #f25a0b);
+    box-shadow: 0 0 12px rgba(255,116,38,.40);
+    transform: scaleY(0);
+    transform-origin: top;
+}
+
+.expense-detail-overlay.active .expense-detail-note::before {
+    animation: expenseDetailNoteLine .42s cubic-bezier(.2,.85,.25,1) .34s both;
+}
+
+.expense-detail-note p {
+    margin: 0;
+    color: #e8ebf3;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.expense-detail-overlay.active .expense-detail-note p {
+    animation: expenseDetailNoteReveal .52s ease .38s both;
+}
+
+.expense-detail-done {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    min-height: 50px;
+    border: 0;
+    border-radius: 15px;
+    background:
+        radial-gradient(circle at 26% 22%, rgba(255,255,255,.18), transparent 26%),
+        linear-gradient(145deg, #ff8a24, #f25a0b);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 950;
+    cursor: pointer;
+    box-shadow: 0 12px 24px rgba(255,116,38,.20);
+    transition:
+        transform .18s ease,
+        box-shadow .2s ease,
+        filter .2s ease;
+}
+
+.expense-detail-done:hover,
+.expense-detail-done:focus-visible {
+    box-shadow:
+        0 15px 30px rgba(255,116,38,.30),
+        0 0 22px rgba(255,116,38,.13);
+    filter: brightness(1.06);
+    transform: translateY(-2px);
+    outline: none;
+}
+
+.expense-detail-done::after {
+    content: "";
+    position: absolute;
+    inset: -60%;
+    background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,.24), transparent 62%);
+    transform: translateX(-85%) rotate(12deg);
+}
+
+.expense-detail-overlay.active .expense-detail-done::after {
+    animation: expenseDetailButtonShine 2.8s ease-in-out .7s infinite;
+}
+
+.expense-detail-close:active,
+.expense-detail-done:active {
+    transform: scale(.96);
+}
+
+.expense-detail-head,
+.expense-detail-summary,
+.expense-detail-meta,
+.expense-detail-note,
+.expense-detail-done {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.expense-detail-overlay.active .expense-detail-head {
+    animation: expenseDetailItemIn .34s ease .10s both;
+}
+
+.expense-detail-overlay.active .expense-detail-summary {
+    animation: expenseDetailItemIn .36s ease .15s both;
+}
+
+.expense-detail-overlay.active .expense-detail-meta {
+    animation: expenseDetailItemIn .36s ease .20s both;
+}
+
+.expense-detail-overlay.active .expense-detail-note {
+    animation: expenseDetailItemIn .36s ease .25s both;
+}
+
+.expense-detail-overlay.active .expense-detail-done {
+    animation: expenseDetailItemIn .36s ease .30s both;
+}
+
+@keyframes expenseDetailItemIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes expenseDetailSheen {
+    0% {
+        opacity: 0;
+        transform: translateX(-65%);
+    }
+    35% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(65%);
+    }
+}
+
+@keyframes expenseDetailIconPulse {
+    0% {
+        opacity: .45;
+        transform: scale(.72) rotate(-8deg);
+    }
+    65% {
+        transform: scale(1.10) rotate(2deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0);
+    }
+}
+
+@keyframes expenseDetailAmountPop {
+    0% {
+        opacity: 0;
+        transform: translateX(10px) scale(.86);
+    }
+    70% {
+        transform: translateX(0) scale(1.06);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes expenseDetailButtonShine {
+    0%, 64% {
+        transform: translateX(-85%) rotate(12deg);
+    }
+    82%, 100% {
+        transform: translateX(85%) rotate(12deg);
+    }
+}
+
+@keyframes expenseDetailOrbRight {
+    from {
+        opacity: .35;
+        transform: translate(30px, -18px) scale(.72);
+    }
+    to {
+        opacity: .74;
+        transform: translate(-18px, 30px) scale(1.08);
+    }
+}
+
+@keyframes expenseDetailOrbLeft {
+    from {
+        opacity: .22;
+        transform: translate(-24px, 24px) scale(.76);
+    }
+    to {
+        opacity: .58;
+        transform: translate(30px, -18px) scale(1.12);
+    }
+}
+
+@keyframes expenseDetailEdgeGlow {
+    0% {
+        opacity: 0;
+        transform: scaleX(.25);
+    }
+    70% {
+        opacity: 1;
+        transform: scaleX(1.08);
+    }
+    100% {
+        opacity: .82;
+        transform: scaleX(1);
+    }
+}
+
+@keyframes expenseDetailTitleIn {
+    from {
+        opacity: 0;
+        letter-spacing: 2px;
+        transform: translateY(-7px);
+        filter: blur(3px);
+    }
+    to {
+        opacity: 1;
+        letter-spacing: -.25px;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+@keyframes expenseDetailSummaryGlow {
+    0%, 100% {
+        border-color: rgba(255,116,38,.08);
+        box-shadow: inset 0 0 0 rgba(255,116,38,0);
+    }
+    50% {
+        border-color: rgba(255,116,38,.34);
+        box-shadow: inset 0 0 20px rgba(255,116,38,.045);
+    }
+}
+
+@keyframes expenseDetailIconFloat {
+    0%, 100% {
+        transform: translateY(0) rotate(0);
+    }
+    50% {
+        transform: translateY(-3px) rotate(3deg);
+    }
+}
+
+@keyframes expenseDetailAmountGlow {
+    0%, 100% {
+        text-shadow: 0 0 0 rgba(255,116,38,0);
+    }
+    50% {
+        text-shadow: 0 0 14px rgba(255,116,38,.42);
+    }
+}
+
+@keyframes expenseDetailMetaLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-16px) scale(.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes expenseDetailMetaRight {
+    from {
+        opacity: 0;
+        transform: translateX(16px) scale(.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes expenseDetailNoteLine {
+    to {
+        transform: scaleY(1);
+    }
+}
+
+@keyframes expenseDetailNoteReveal {
+    from {
+        opacity: 0;
+        clip-path: inset(0 100% 0 0);
+        filter: blur(2px);
+        transform: translateX(-8px);
+    }
+    to {
+        opacity: 1;
+        clip-path: inset(0 0 0 0);
+        filter: blur(0);
+        transform: translateX(0);
+    }
+}
+
+/* Smooth expense-detail motion pass.
+   One coordinated lift reads better than several competing entrance effects. */
+.expense-detail-overlay {
+    transition:
+        opacity .32s cubic-bezier(.22,1,.36,1),
+        visibility 0s linear .34s,
+        background .32s ease,
+        backdrop-filter .32s ease;
+}
+
+.expense-detail-overlay::before,
+.expense-detail-overlay::after {
+    animation: none !important;
+    transition:
+        opacity .55s ease,
+        transform .68s cubic-bezier(.22,1,.36,1);
+}
+
+.expense-detail-overlay.active::before {
+    opacity: .52;
+    transform: translate(-8px, 8px) scale(1);
+}
+
+.expense-detail-overlay.active::after {
+    opacity: .36;
+    transform: translate(8px, -6px) scale(1);
+}
+
+.expense-detail-card {
+    transform: translate3d(0, 22px, 0) scale(.975);
+    transform-origin: center center;
+    will-change: transform, opacity;
+    transition:
+        opacity .30s ease,
+        transform .46s cubic-bezier(.22,1,.36,1),
+        box-shadow .46s ease;
+}
+
+.expense-detail-overlay.active .expense-detail-card {
+    transform: translate3d(0, 0, 0) scale(1);
+}
+
+.expense-detail-overlay.active .expense-detail-card::before {
+    animation: none !important;
+    opacity: 0;
+}
+
+.expense-detail-card::after {
+    transform: scaleX(.65);
+    transition:
+        opacity .38s ease .10s,
+        transform .48s cubic-bezier(.22,1,.36,1) .10s;
+}
+
+.expense-detail-overlay.active .expense-detail-card::after {
+    animation: none !important;
+    opacity: .78;
+    transform: scaleX(1);
+}
+
+.expense-detail-head,
+.expense-detail-summary,
+.expense-detail-meta,
+.expense-detail-note,
+.expense-detail-done {
+    opacity: 0;
+    transform: translate3d(0, 9px, 0);
+    animation: none !important;
+    transition:
+        opacity .30s ease,
+        transform .40s cubic-bezier(.22,1,.36,1);
+}
+
+.expense-detail-overlay.active .expense-detail-head,
+.expense-detail-overlay.active .expense-detail-summary,
+.expense-detail-overlay.active .expense-detail-meta,
+.expense-detail-overlay.active .expense-detail-note,
+.expense-detail-overlay.active .expense-detail-done {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    animation: none !important;
+}
+
+.expense-detail-overlay.active .expense-detail-head {
+    transition-delay: .06s;
+}
+
+.expense-detail-overlay.active .expense-detail-summary {
+    transition-delay: .10s;
+}
+
+.expense-detail-overlay.active .expense-detail-meta {
+    transition-delay: .14s;
+}
+
+.expense-detail-overlay.active .expense-detail-note {
+    transition-delay: .18s;
+}
+
+.expense-detail-overlay.active .expense-detail-done {
+    transition-delay: .22s;
+}
+
+.expense-detail-overlay.active .expense-detail-head h3,
+.expense-detail-overlay.active .expense-detail-summary::after,
+.expense-detail-overlay.active .expense-detail-icon,
+.expense-detail-overlay.active .expense-detail-icon img,
+.expense-detail-overlay.active .expense-detail-amount,
+.expense-detail-overlay.active .expense-detail-meta div,
+.expense-detail-overlay.active .expense-detail-note p {
+    animation: none !important;
+}
+
+.expense-detail-meta div {
+    opacity: 1;
+    transform: none;
+}
+
+.expense-detail-icon {
+    transform: scale(.96);
+    transition: transform .42s cubic-bezier(.22,1,.36,1) .12s;
+}
+
+.expense-detail-overlay.active .expense-detail-icon {
+    transform: scale(1);
+}
+
+.expense-detail-note::before {
+    transition: transform .42s cubic-bezier(.22,1,.36,1) .20s;
+}
+
+.expense-detail-overlay.active .expense-detail-note::before {
+    animation: none !important;
+    transform: scaleY(1);
+}
+
+.expense-detail-overlay.active .expense-detail-done::after {
+    animation: expenseDetailButtonShine 3.4s ease-in-out 1.1s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .expense-detail-overlay,
+    .expense-detail-overlay::before,
+    .expense-detail-overlay::after,
+    .expense-detail-card,
+    .expense-detail-card::after,
+    .expense-detail-head,
+    .expense-detail-summary,
+    .expense-detail-meta,
+    .expense-detail-note,
+    .expense-detail-done,
+    .expense-detail-icon,
+    .expense-detail-note::before {
+        animation: none !important;
+        transition-duration: .01ms !important;
+        transition-delay: 0s !important;
+    }
+}
+
+
+
+/* =========================
+   CSS-BUILT AI MONEY COACH BOT
+   No image or GIF needed
+========================= */
+
+.ai-money-bot {
+    position: absolute;
+    top: -9px;
+    right: 104px;
+    width: 54px;
+    height: 54px;
+    z-index: 120;
+    text-decoration: none;
+    display: grid;
+    place-items: center;
+    filter: drop-shadow(0 10px 20px rgba(255,116,38,.22));
+    animation: botFloat 2.8s ease-in-out infinite;
+    transform-origin: center bottom;
+}
+
+.ai-money-bot:hover {
+    transform: translateY(-2px) scale(1.04);
+}
+
+.ai-money-bot:active {
+    transform: scale(.94);
+}
+
+.ai-money-bot .bot-spark {
+    position: absolute;
+    right: 0;
+    top: 2px;
+    color: #ffbf69;
+    font-size: 12px;
+    animation: sparkBlink 1.4s ease-in-out infinite;
+}
+
+.ai-money-bot .bot-body {
+    width: 50px;
+    height: 46px;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 34% 18%, rgba(255,255,255,.55), transparent 20%),
+        linear-gradient(145deg, #f7f9ff 0%, #cbd4df 44%, #737f8e 100%);
+    border: 2px solid rgba(255,116,38,.75);
+    position: relative;
+    box-shadow:
+        inset 0 2px 5px rgba(255,255,255,.45),
+        0 0 18px rgba(255,116,38,.20);
+}
+
+.ai-money-bot .bot-screen {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 10px;
+    height: 22px;
+    border-radius: 10px;
+    background: #07111c;
+    border: 1px solid rgba(255,255,255,.16);
+    overflow: hidden;
+}
+
+.ai-money-bot .bot-eye {
+    position: absolute;
+    top: 7px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #ffbf3f;
+    box-shadow: 0 0 8px rgba(255,191,63,.75);
+    animation: botBlink 3s infinite;
+}
+
+.ai-money-bot .bot-eye.left {
+    left: 9px;
+}
+
+.ai-money-bot .bot-eye.right {
+    right: 9px;
+}
+
+.ai-money-bot .bot-mouth {
+    position: absolute;
+    left: 17px;
+    top: 15px;
+    width: 10px;
+    height: 5px;
+    border-bottom: 2px solid #ffbf3f;
+    border-radius: 0 0 10px 10px;
+}
+
+.ai-money-bot .bot-ear {
+    position: absolute;
+    top: 13px;
+    width: 7px;
+    height: 17px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #ff9b46, #ff4d9a);
+    box-shadow: 0 0 10px rgba(255,116,38,.35);
+}
+
+.ai-money-bot .bot-ear.left {
+    left: -6px;
+}
+
+.ai-money-bot .bot-ear.right {
+    right: -6px;
+}
+
+.ai-money-bot .bot-crown {
+    position: absolute;
+    left: 15px;
+    top: -9px;
+    width: 21px;
+    height: 14px;
+    background: #ffbf3f;
+    clip-path: polygon(0 100%, 10% 20%, 32% 70%, 50% 0, 68% 70%, 90% 20%, 100% 100%);
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,.25));
+}
+
+.ai-money-bot .bot-tip {
+    display: none;
+}
+
+@keyframes botFloat {
+    0%, 100% {
+        translate: 0 0;
+    }
+    50% {
+        translate: 0 -4px;
+    }
+}
+
+@keyframes sparkBlink {
+    0%, 100% {
+        opacity: .4;
+        transform: scale(.9);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2) rotate(12deg);
+    }
+}
+
+@keyframes botBlink {
+    0%, 92%, 100% {
+        transform: scaleY(1);
+    }
+    95% {
+        transform: scaleY(.15);
+    }
+}
+
+
+/* AI Bot 4px Up Adjustment */
+.ai-money-bot {
+    top: 8px !important;
+}
+
+
+/* AI Bot Additional 7px Up Adjustment */
+.ai-money-bot {
+    top: 1px !important;
+}
+
+
+/* AI Bot Additional 5px Up Adjustment */
+.ai-money-bot {
+    top: -4px !important;
+}
+
+
+/* AI Bot Additional Another 5px Up Adjustment */
+.ai-money-bot {
+    top: -9px !important;
+}
+
+/* Polished AI coach idle animation. */
+.ai-money-bot .bot-body {
+    animation: budgetBotBody 2.2s ease-in-out infinite !important;
+    transform-origin: center bottom;
+}
+
+.ai-money-bot .bot-screen {
+    animation: budgetBotScreen 2.2s ease-in-out infinite !important;
+}
+
+.ai-money-bot .bot-crown {
+    animation: budgetBotCrown 2.2s ease-in-out infinite !important;
+    transform-origin: center bottom;
+}
+
+.ai-money-bot .bot-ear.left {
+    animation: budgetBotEarLeft 1.8s ease-in-out infinite !important;
+}
+
+.ai-money-bot .bot-ear.right {
+    animation: budgetBotEarRight 1.8s ease-in-out infinite !important;
+}
+
+.ai-money-bot .bot-eye {
+    animation: budgetBotEyes 3.2s ease-in-out infinite !important;
+}
+
+.ai-money-bot .bot-mouth {
+    animation: budgetBotSmile 2.2s ease-in-out infinite !important;
+}
+
+.ai-money-bot .bot-spark {
+    animation: budgetBotSpark 1.4s ease-in-out infinite !important;
+}
+
+@keyframes budgetBotBody {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-4px) rotate(-2.5deg); }
+    50% { transform: translateY(-6px) rotate(0deg); }
+    75% { transform: translateY(-4px) rotate(2.5deg); }
+}
+
+@keyframes budgetBotScreen {
+    0%, 100% {
+        box-shadow: inset 0 0 0 rgba(255,191,63,0);
+    }
+    50% {
+        box-shadow:
+            inset 0 0 10px rgba(255,191,63,.12),
+            0 0 8px rgba(255,116,38,.14);
+    }
+}
+
+@keyframes budgetBotCrown {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    45% { transform: translateY(-3px) rotate(-5deg); }
+    55% { transform: translateY(-3px) rotate(5deg); }
+}
+
+@keyframes budgetBotEarLeft {
+    0%, 100% { transform: scaleY(1); filter: brightness(1); }
+    50% { transform: scaleY(1.18); filter: brightness(1.22); }
+}
+
+@keyframes budgetBotEarRight {
+    0%, 100% { transform: scaleY(1.18); filter: brightness(1.22); }
+    50% { transform: scaleY(1); filter: brightness(1); }
+}
+
+@keyframes budgetBotEyes {
+    0%, 42%, 48%, 100% {
+        transform: scaleY(1);
+        box-shadow: 0 0 8px rgba(255,191,63,.75);
+    }
+    45% {
+        transform: scaleY(.16);
+        box-shadow: 0 0 3px rgba(255,191,63,.45);
+    }
+    70% {
+        box-shadow: 0 0 12px rgba(255,191,63,1);
+    }
+}
+
+@keyframes budgetBotSmile {
+    0%, 100% { transform: scaleX(1); }
+    50% { transform: scaleX(1.18) translateY(1px); }
+}
+
+@keyframes budgetBotSpark {
+    0%, 100% {
+        opacity: .35;
+        transform: translate(0, 0) scale(.75) rotate(0deg);
+    }
+    50% {
+        opacity: 1;
+        transform: translate(2px, -3px) scale(1.25) rotate(18deg);
+    }
+}
+
+</style>
+<link rel="stylesheet" href="/assets/css/customer_phone_frame.css">
+<style>
+/* Customer budget bottom fit: one nav-safe buffer, no oversized empty tail. */
+.phone > .content {
+    padding-bottom: calc(var(--bottom-nav-height, 78px) + 14px) !important;
+}
+
+.recent-list {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+</style>
+</head>
+
+<body>
+<main class="stage">
+    <section class="phone">
+        <div class="content">
+            <header class="budget-header">
+                <h1>Budget</h1>
+
+<!-- AI MONEY COACH BOT START -->
+<a class="ai-money-bot" href="/ai-coach" aria-label="Open AI Money Coach">
+    <span class="bot-spark">✦</span>
+    <span class="bot-body">
+        <span class="bot-crown"></span>
+        <span class="bot-ear left"></span>
+        <span class="bot-ear right"></span>
+        <span class="bot-screen">
+            <span class="bot-eye left"></span>
+            <span class="bot-eye right"></span>
+            <span class="bot-mouth"></span>
+        </span>
+    </span>
+    <span class="bot-tip">AI Coach</span>
+</a>
+<!-- AI MONEY COACH BOT END -->
+
+
+
+                <div class="month-pill">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="4" y="5" width="16" height="15" rx="2"></rect>
+                        <path d="M8 3v4M16 3v4M4 10h16"></path>
+                    </svg>
+                    <span id="monthLabel">May</span>
+                </div>
+            </header>
+
+            <section class="overview-card">
+                <div class="overview-top">
+                    <div class="ring-wrap">
+                        <div class="budget-ring" id="budgetRing"></div>
+                        <div class="ring-text">
+                            <strong id="ringPercent">0%</strong>
+                            <span>of budget used</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-list">
+                        <div class="stat-row">
+                            <div class="stat-icon"><img class="budget-icon-img" src="/assets/budget-icons/icon-wallet.svg" alt=""></div>
+                            <div class="stat-label">Budget</div>
+                            <div class="stat-value" id="budgetAmount">RM0</div>
+                        </div>
+
+                        <div class="stat-row">
+                            <div class="stat-icon"><img class="budget-icon-img" src="/assets/budget-icons/icon-spent.svg" alt=""></div>
+                            <div class="stat-label">Spent</div>
+                            <div class="stat-value" id="spentAmount">RM0</div>
+                        </div>
+
+                        <div class="stat-row">
+                            <div class="stat-icon"><img class="budget-icon-img" src="/assets/budget-icons/icon-remaining.svg" alt=""></div>
+                            <div class="stat-label">Remain</div>
+                            <div class="stat-value orange" id="remainingAmount">RM0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <button class="quick-action primary" type="button" id="setBudgetBtn">
+                        <img class="budget-icon-img" src="/assets/budget-icons/icon-target.svg" alt="">
+                        Set Budget
+                    </button>
+                    <button class="quick-action secondary" type="button" id="topAddExpenseBtn">
+                        <img class="budget-icon-img" src="/assets/budget-icons/icon-plus.svg" alt="">
+                        Add Expense
+                    </button>
+                </div>
+            </section>
+
+            <div class="section-head">
+                <h2>Spending Insights</h2>
+                <button type="button" id="editBudgetBtn">Edit</button>
+            </div>
+
+            <section class="insight-grid">
+                <article class="insight-card">
+                    <div class="insight-icon"><img class="budget-icon-img" src="/assets/budget-icons/icon-trend.svg" alt=""></div>
+                    <strong id="insightSpent">RM0</strong>
+                    <span>Total spent</span>
+                </article>
+
+                <article class="insight-card">
+                    <div class="insight-icon"><img class="budget-icon-img" src="/assets/budget-icons/icon-receipt.svg" alt=""></div>
+                    <strong id="insightTransactions">0</strong>
+                    <span>Transactions</span>
+                </article>
+
+                <article class="insight-card">
+                    <div class="insight-icon"><img class="budget-icon-img" src="/assets/budget-icons/icon-daily.svg" alt=""></div>
+                    <strong id="insightDaily">RM0</strong>
+                    <span>Daily avg</span>
+                </article>
+            </section>
+
+            <section class="breakdown-card">
+                <div class="breakdown-head">
+                    <h2 class="breakdown-title">Spending by Category</h2>
+                    <button type="button">View all ›</button>
+                </div>
+                <div id="breakdownRows"></div>
+            </section>
+
+            <div class="section-head">
+                <h2>Recent Expenses</h2>
+                <button type="button">View all ›</button>
+            </div>
+
+            <section class="recent-list" id="recentList"></section>
+        </div>
+
+        <div id="addExpenseMount"></div>
+
+        <section class="expense-detail-overlay" id="expenseDetailOverlay" aria-hidden="true">
+            <div class="expense-detail-card" role="dialog" aria-modal="true" aria-labelledby="expenseDetailTitle">
+                <div class="expense-detail-head">
+                    <button class="expense-detail-close" id="closeExpenseDetailBtn" type="button" aria-label="Close expense details">×</button>
+                    <h3 id="expenseDetailTitle">Expense Details</h3>
+                    <div></div>
+                </div>
+
+                <div class="expense-detail-summary">
+                    <div class="expense-detail-icon" id="expenseDetailIcon"></div>
+                    <div class="expense-detail-merchant">
+                        <strong id="expenseDetailMerchant"></strong>
+                        <span>Saved expense</span>
+                    </div>
+                    <div class="expense-detail-amount" id="expenseDetailAmount"></div>
+                </div>
+
+                <div class="expense-detail-meta">
+                    <div>
+                        <span>Date</span>
+                        <strong id="expenseDetailDate"></strong>
+                    </div>
+                    <div>
+                        <span>Category</span>
+                        <strong id="expenseDetailCategory"></strong>
+                    </div>
+                </div>
+
+                <div class="expense-detail-note">
+                    <span>Note</span>
+                    <p id="expenseDetailNote"></p>
+                </div>
+
+                <button class="expense-detail-done" id="expenseDetailDoneBtn" type="button">Done</button>
+            </div>
+        </section>
+
+        <section class="set-budget-overlay" id="setBudgetOverlay">
+            <div class="set-budget-sheet">
+                <div class="set-budget-handle"></div>
+
+                <div class="set-budget-head">
+                    <button class="close-budget-btn" id="closeBudgetBtn" type="button">×</button>
+                    <h3>Set Monthly Budget</h3>
+                    <div></div>
+                </div>
+
+                <label class="budget-input-label" for="budgetInput">Monthly limit</label>
+                <div class="budget-input-shell">
+                    <strong>RM</strong>
+                    <input id="budgetInput" type="number" step="0.01" min="1" placeholder="250.00">
+                </div>
+
+                <p class="budget-helper">
+                    This amount controls your progress ring, remaining amount, and budget warnings.
+                </p>
+
+                <div class="set-budget-actions">
+                    <button class="cancel-budget-btn" id="cancelBudgetBtn" type="button">Cancel</button>
+                    <button class="save-budget-btn" id="saveBudgetBtn" type="button">Save Budget</button>
+                </div>
+            </div>
+        </section>
+
+        <nav class="bottom-nav">
+            <a class="nav-item" href="/main-menu">
+                <span class="nav-icon nav-main"></span>
+                <em>Main</em>
+            </a>
+            <a class="nav-item" href="/voucher">
+                <span class="nav-icon nav-voucher"></span>
+                <em>Voucher</em>
+            </a>
+            <a class="nav-item" href="/map">
+                <span class="nav-icon nav-map"></span>
+                <em>Map</em>
+            </a>
+            <a class="nav-item active" href="/budget">
+                <span class="nav-icon nav-budget"></span>
+                <em>Budget</em>
+            </a>
+            <a class="nav-item" href="/profile">
+                <span class="nav-icon nav-profile"></span>
+                <em>Profile</em>
+            </a>
+        </nav>
+    </section>
+</main>
+
+<script>
+let latestBudgetSummary = null;
+let lastExpenseDetailTrigger = null;
+let expenseDetailCloseTimer = null;
+let expenseDetailOpenFrame = null;
+let expenseDetailFocusTimer = null;
+const EXPENSE_NOTES_STORAGE_KEY = "vouchr_budget_expense_notes";
+
+function readExpenseNotes() {
+    try {
+        const notes = JSON.parse(localStorage.getItem(EXPENSE_NOTES_STORAGE_KEY) || "{}");
+        return notes && typeof notes === "object" ? notes : {};
+    } catch {
+        return {};
+    }
+}
+
+function writeExpenseNotes(notes) {
+    try {
+        localStorage.setItem(EXPENSE_NOTES_STORAGE_KEY, JSON.stringify(notes));
+    } catch {
+        // The expense still saves normally if browser storage is unavailable.
+    }
+}
+
+function rememberExpenseNote(expenseId, note) {
+    if (!expenseId) return;
+
+    const notes = readExpenseNotes();
+    const cleanNote = String(note || "").trim();
+
+    if (cleanNote) {
+        notes[String(expenseId)] = cleanNote;
+    } else {
+        delete notes[String(expenseId)];
+    }
+
+    writeExpenseNotes(notes);
+}
+
+function forgetExpenseNote(expenseId) {
+    const notes = readExpenseNotes();
+    delete notes[String(expenseId)];
+    writeExpenseNotes(notes);
+}
+
+function mergeExpenseNotes(summary) {
+    const notes = readExpenseNotes();
+
+    return {
+        ...summary,
+        recent: (summary.recent || []).map((expense) => ({
+            ...expense,
+            note: String(expense.note || "").trim() || notes[String(expense.id)] || ""
+        }))
+    };
+}
+
+
+function animateNumberText(element, endValue, formatter, duration = 520) {
+    if (!element) return;
+
+    const startText = element.textContent.replace(/[^\d.]/g, "");
+    const startValue = Number(startText || 0);
+    const startTime = performance.now();
+
+    element.classList.remove("budget-value-pop");
+    void element.offsetWidth;
+    element.classList.add("budget-value-pop");
+
+    function tick(now) {
+        const progress = Math.min((now - startTime) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = startValue + (endValue - startValue) * eased;
+
+        element.textContent = formatter(current);
+
+        if (progress < 1) {
+            requestAnimationFrame(tick);
+        } else {
+            element.textContent = formatter(endValue);
+        }
+    }
+
+    requestAnimationFrame(tick);
+}
+
+function animateRing(percent) {
+    const ring = document.getElementById("budgetRing");
+    if (!ring) return;
+
+    const start = Number(ring.dataset.percent || 0);
+    const end = Math.min(Math.max(Number(percent || 0), 0), 100);
+    const startTime = performance.now();
+    const duration = 650;
+
+    ring.dataset.percent = end;
+
+    function tick(now) {
+        const progress = Math.min((now - startTime) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = start + (end - start) * eased;
+        const degrees = current * 3.6;
+
+        ring.style.background =
+            `conic-gradient(var(--orange) 0deg, var(--orange) ${degrees}deg, rgba(255,255,255,.10) ${degrees}deg 360deg)`;
+
+        if (progress < 1) {
+            requestAnimationFrame(tick);
+        }
+    }
+
+    requestAnimationFrame(tick);
+}
+
+function rm(value) {
+    return "RM" + Number(value || 0).toFixed(2);
+}
+
+function rmCompact(value) {
+    return "RM" + Number(value || 0).toFixed(2).replace(".00", "");
+}
+
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+function merchantIcon(name) {
+    const text = String(name || "").trim().toLowerCase();
+
+    if (text.includes("mcdonald") || text.includes("pastamania") || text.includes("burger") || text.includes("palmyra")) {
+        return '<img class="budget-icon-img" src="/assets/budget-icons/icon-food.svg" alt="">';
+    }
+
+    if (text.includes("boost")) {
+        return '<img class="budget-icon-img" src="/assets/budget-icons/icon-drinks.svg" alt="">';
+    }
+
+    if (text.includes("coffee") || text.includes("starbucks")) {
+        return '<img class="budget-icon-img" src="/assets/budget-icons/icon-cafe.svg" alt="">';
+    }
+
+    if (text.includes("sweet") || text.includes("dessert")) {
+        return '<img class="budget-icon-img" src="/assets/budget-icons/icon-desserts.svg" alt="">';
+    }
+
+    return '<img class="budget-icon-img" src="/assets/budget-icons/icon-receipt.svg" alt="">';
+}
+
+function categoryIcon(category) {
+    const key = String(category || "").toLowerCase();
+
+    if (key === "food") {
+        return '<img class="budget-icon-img" src="/assets/budget-icons/icon-food.svg" alt="">';
+    }
+
+    if (key === "cafe") {
+        return '<img class="budget-icon-img" src="/assets/budget-icons/icon-cafe.svg" alt="">';
+    }
+
+    if (key === "drinks") {
+        return '<img class="budget-icon-img" src="/assets/budget-icons/icon-drinks.svg" alt="">';
+    }
+
+    if (key === "desserts") {
+        return '<img class="budget-icon-img" src="/assets/budget-icons/icon-desserts.svg" alt="">';
+    }
+
+    return '<img class="budget-icon-img" src="/assets/budget-icons/icon-custom.svg" alt="">';
+}
+
+
+function formatDate(dateString) {
+    const safeDateString = /^\d{4}-\d{2}-\d{2}$/.test(String(dateString || ""))
+        ? `${dateString}T00:00:00`
+        : dateString;
+    const date = new Date(safeDateString);
+    if (Number.isNaN(date.getTime())) return dateString;
+
+    return date.toLocaleDateString("en-MY", {
+        day: "2-digit",
+        month: "short"
+    });
+}
+
+function formatLongDate(dateString) {
+    const safeDateString = /^\d{4}-\d{2}-\d{2}$/.test(String(dateString || ""))
+        ? `${dateString}T00:00:00`
+        : dateString;
+    const date = new Date(safeDateString);
+    if (Number.isNaN(date.getTime())) return dateString || "Not provided";
+
+    return date.toLocaleDateString("en-MY", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric"
+    });
+}
+
+function categoryLabel(category) {
+    const labels = {
+        food: "Food",
+        cafe: "Café",
+        drinks: "Drinks",
+        desserts: "Desserts"
+    };
+    const key = String(category || "").toLowerCase();
+    return labels[key] || (key ? key.charAt(0).toUpperCase() + key.slice(1) : "Other");
+}
+
+function setMonthLabel() {
+    const now = new Date();
+    document.getElementById("monthLabel").textContent = now.toLocaleDateString("en-MY", {
+        month: "short"
+    });
+}
+
+async function loadHtmlComponent(mountId, url, fallbackText) {
+    const mount = document.getElementById(mountId);
+    if (!mount) return;
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(url + " failed");
+        const html = await response.text();
+        mount.innerHTML = html;
+
+        mount.querySelectorAll("script").forEach((oldScript) => {
+            const newScript = document.createElement("script");
+            Array.from(oldScript.attributes).forEach((attr) => newScript.setAttribute(attr.name, attr.value));
+            newScript.textContent = oldScript.textContent;
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+    } catch {
+        mount.innerHTML = "<p style='color:#a3a9ba;font-size:12px;'>" + fallbackText + "</p>";
+    }
+}
+
+async function loadBudgetSummary() {
+    const response = await fetch("/api/budget/summary");
+    const summary = await response.json();
+    renderBudget(summary);
+}
+
+function renderBudget(summary) {
+    summary = mergeExpenseNotes(summary);
+    latestBudgetSummary = summary;
+
+    const budget = Number(summary.monthly_budget || 0);
+    const spent = Number(summary.spent || 0);
+    const remaining = Number(summary.remaining || 0);
+    const percent = Math.min(Math.round(Number(summary.usage_percent || 0)), 100);
+    animateRing(percent);
+
+    animateNumberText(document.getElementById("ringPercent"), percent, (value) => Math.round(value) + "%", 560);
+    animateNumberText(document.getElementById("budgetAmount"), budget, rmCompact, 560);
+    animateNumberText(document.getElementById("spentAmount"), spent, rmCompact, 560);
+    animateNumberText(document.getElementById("remainingAmount"), remaining, rmCompact, 560);
+
+    animateNumberText(document.getElementById("insightSpent"), spent, rmCompact, 560);
+    animateNumberText(document.getElementById("insightTransactions"), (summary.recent || []).length, (value) => String(Math.round(value)), 420);
+    animateNumberText(document.getElementById("insightDaily"), spent / 30, rmCompact, 560);
+
+    renderBreakdown(summary.categories || []);
+    renderRecent(summary.recent || []);
+
+    if (window.AddExpenseComponent && typeof window.AddExpenseComponent.setBudgetSummary === "function") {
+        window.AddExpenseComponent.setBudgetSummary(summary);
+    }
+}
+
+function renderBreakdown(categories) {
+    const container = document.getElementById("breakdownRows");
+
+    container.innerHTML = categories.map((category) => {
+        const width = Math.min(Number(category.percent || 0), 100);
+
+        return `
+            <div class="breakdown-row">
+                <div class="breakdown-left">
+                    <div class="breakdown-icon">${categoryIcon(category.key)}</div>
+                    <div class="breakdown-name">${category.name}</div>
+                </div>
+                <div class="breakdown-track">
+                    <div class="breakdown-fill" style="width:${width}%"></div>
+                </div>
+                <div class="breakdown-amount">${rmCompact(category.amount)}</div>
+                <div class="breakdown-percent">${Math.round(width)}%</div>
+            </div>
+        `;
+    }).join("");
+}
+
+
+async function deleteExpense(expenseId, rowElement) {
+    if (!expenseId) return;
+
+    if (rowElement) {
+        rowElement.classList.add("deleting");
+        setTimeout(() => {
+            rowElement.remove();
+        }, 120);
+    }
+
+    try {
+        const response = await fetch(`/api/budget/expenses/${encodeURIComponent(expenseId)}/delete`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.summary) {
+            forgetExpenseNote(expenseId);
+            renderBudget(result.summary);
+            return;
+        }
+
+        await loadBudgetSummary();
+    } catch (error) {
+        console.warn("Delete expense request failed, refreshing budget anyway:", error);
+        await loadBudgetSummary();
+    }
+}
+
+
+function renderRecent(expenses) {
+    const list = document.getElementById("recentList");
+
+    if (!expenses.length) {
+        list.innerHTML = `
+            <article class="transaction-row">
+                <div class="transaction-logo"><img class="budget-icon-img" src="/assets/budget-icons/icon-receipt.svg" alt=""></div>
+                <div class="transaction-info">
+                    <h3>No transactions yet</h3>
+                    <p>Add your first expense</p>
+                </div>
+                <div class="transaction-amount">RM0</div>
+            </article>
+        `;
+        return;
+    }
+
+    list.innerHTML = expenses.slice(0, 3).map((expense) => `
+        <article
+            class="transaction-row"
+            data-expense-id="${escapeHtml(expense.id)}"
+            role="button"
+            tabindex="0"
+            aria-label="View details for ${escapeHtml(expense.merchant)}"
+        >
+            <div class="transaction-logo">${merchantIcon(expense.merchant)}</div>
+            <div class="transaction-info">
+                <h3>${escapeHtml(expense.merchant)}</h3>
+                <p>${escapeHtml(formatDate(expense.date))} · ${escapeHtml(categoryLabel(expense.category))}</p>
+            </div>
+            <div class="transaction-actions">
+                <div class="transaction-amount">-${rmCompact(expense.amount)}</div>
+                <button class="expense-delete-btn" type="button" data-expense-id="${escapeHtml(expense.id)}" aria-label="Remove expense">×</button>
+            </div>
+        </article>
+    `).join("");
+}
+
+function openExpenseDetail(expense, trigger) {
+    if (!expense) return;
+
+    clearTimeout(expenseDetailCloseTimer);
+    clearTimeout(expenseDetailFocusTimer);
+    cancelAnimationFrame(expenseDetailOpenFrame);
+    lastExpenseDetailTrigger = trigger || null;
+    document.getElementById("expenseDetailIcon").innerHTML = merchantIcon(expense.merchant);
+    document.getElementById("expenseDetailMerchant").textContent = expense.merchant || "Expense";
+    document.getElementById("expenseDetailAmount").textContent = "-" + rmCompact(expense.amount);
+    document.getElementById("expenseDetailDate").textContent = formatLongDate(expense.date);
+    document.getElementById("expenseDetailCategory").textContent = categoryLabel(expense.category);
+    document.getElementById("expenseDetailNote").textContent =
+        String(expense.note || "").trim() || "No note was added for this expense.";
+
+    const overlay = document.getElementById("expenseDetailOverlay");
+    overlay.classList.remove("active");
+    overlay.setAttribute("aria-hidden", "false");
+    void overlay.offsetWidth;
+
+    expenseDetailOpenFrame = requestAnimationFrame(() => {
+        overlay.classList.add("active");
+        expenseDetailFocusTimer = setTimeout(() => {
+            document.getElementById("closeExpenseDetailBtn").focus();
+        }, 80);
+    });
+}
+
+function closeExpenseDetail() {
+    const overlay = document.getElementById("expenseDetailOverlay");
+    cancelAnimationFrame(expenseDetailOpenFrame);
+    clearTimeout(expenseDetailFocusTimer);
+    overlay.classList.remove("active");
+    overlay.setAttribute("aria-hidden", "true");
+
+    const trigger = lastExpenseDetailTrigger;
+    lastExpenseDetailTrigger = null;
+
+    clearTimeout(expenseDetailCloseTimer);
+    expenseDetailCloseTimer = setTimeout(() => {
+        if (trigger && document.contains(trigger)) {
+            trigger.focus();
+        }
+    }, 360);
+}
+
+function getRecentExpense(expenseId) {
+    return (latestBudgetSummary?.recent || []).find((expense) => {
+        return String(expense.id) === String(expenseId);
+    });
+}
+
+function openSetBudget() {
+    const overlay = document.getElementById("setBudgetOverlay");
+    const input = document.getElementById("budgetInput");
+    const current = latestBudgetSummary ? Number(latestBudgetSummary.monthly_budget || 0) : 0;
+
+    input.value = current ? current.toFixed(2) : "";
+    overlay.classList.add("active");
+
+    setTimeout(() => input.focus(), 160);
+}
+
+function closeSetBudget() {
+    document.getElementById("setBudgetOverlay").classList.remove("active");
+}
+
+async function saveBudget() {
+    const input = document.getElementById("budgetInput");
+    const amount = Number(input.value || 0);
+
+    if (!amount || amount <= 0) {
+        alert("Please enter a valid monthly budget.");
+        input.focus();
+        return;
+    }
+
+    const response = await fetch("/api/budget/settings", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            monthly_budget: amount
+        })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+        closeSetBudget();
+        renderBudget(result.summary);
+    }
+}
+
+function openAddExpense() {
+    if (window.AddExpenseComponent && typeof window.AddExpenseComponent.open === "function") {
+        window.AddExpenseComponent.open();
+    }
+}
+
+document.getElementById("setBudgetBtn").addEventListener("click", openSetBudget);
+document.getElementById("editBudgetBtn").addEventListener("click", openSetBudget);
+document.getElementById("topAddExpenseBtn").addEventListener("click", openAddExpense);
+
+document.getElementById("closeBudgetBtn").addEventListener("click", closeSetBudget);
+document.getElementById("cancelBudgetBtn").addEventListener("click", closeSetBudget);
+document.getElementById("saveBudgetBtn").addEventListener("click", saveBudget);
+
+document.getElementById("setBudgetOverlay").addEventListener("click", (event) => {
+    if (event.target.id === "setBudgetOverlay") {
+        closeSetBudget();
+    }
+});
+
+document.getElementById("closeExpenseDetailBtn").addEventListener("click", closeExpenseDetail);
+document.getElementById("expenseDetailDoneBtn").addEventListener("click", closeExpenseDetail);
+document.getElementById("expenseDetailOverlay").addEventListener("click", (event) => {
+    if (event.target.id === "expenseDetailOverlay") {
+        closeExpenseDetail();
+    }
+});
+
+document.getElementById("budgetInput").addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+        saveBudget();
+    }
+});
+
+
+document.addEventListener("click", (event) => {
+    const deleteButton = event.target.closest(".expense-delete-btn");
+
+    if (!deleteButton) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const row = deleteButton.closest(".transaction-row");
+    deleteExpense(deleteButton.dataset.expenseId, row);
+});
+
+document.getElementById("recentList").addEventListener("click", (event) => {
+    const row = event.target.closest(".transaction-row[data-expense-id]");
+    if (!row || event.target.closest(".expense-delete-btn")) return;
+    openExpenseDetail(getRecentExpense(row.dataset.expenseId), row);
+});
+
+document.getElementById("recentList").addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    if (event.target.closest(".expense-delete-btn")) return;
+
+    const row = event.target.closest(".transaction-row[data-expense-id]");
+    if (!row) return;
+
+    event.preventDefault();
+    openExpenseDetail(getRecentExpense(row.dataset.expenseId), row);
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && document.getElementById("expenseDetailOverlay").classList.contains("active")) {
+        closeExpenseDetail();
+    }
+});
+
+
+window.rememberExpenseNote = rememberExpenseNote;
+window.refreshBudgetSummary = loadBudgetSummary;
+
+setMonthLabel();
+
+loadHtmlComponent("addExpenseMount", "/assets/components/add_expense_component.html", "Add expense component could not load.")
+    .then(loadBudgetSummary)
+    .catch(loadBudgetSummary);
+</script>
+</body>
+</html>

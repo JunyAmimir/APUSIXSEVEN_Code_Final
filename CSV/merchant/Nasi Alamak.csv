@@ -1,0 +1,4 @@
+VoucherTitle,Status,Redeemed,Total,ExpiryDate,Address,ImageUrl,Dismissed
+RM3 Off Signature Nasi Lemak,Active,30,50,2026-06-30,"No 69, Jalan Nasi 1/2, Taman makan",/assets/merchant/voucher_Nasi_Alamak_1781095253040_Signature_nasi_lemak.jpg,False
+RM5 Off Nasi Lemak Combo A,Active,20,30,2026-06-30,"No 69, Jalan Nasi 1/2, Taman makan",/assets/merchant/voucher_Nasi_Alamak_1781095332478_Combo_Set_A.jpg,False
+50% Off Nasi Lemak Special,Active,10,20,2026-06-30,"No 69, Jalan Nasi 1/2, Taman makan",/assets/merchant/voucher_Nasi_Alamak_1781095366696_Nasi_Lemak_Special.jpg,False
